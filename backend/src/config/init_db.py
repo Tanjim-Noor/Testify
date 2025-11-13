@@ -1,9 +1,18 @@
 """
 Database initialization script for creating tables and schema.
 
+DEPRECATED: This script is kept for backward compatibility only.
+Use Alembic migrations instead for database schema management:
+    alembic upgrade head
+
+For more information on migrations, see the Database Migrations section in README.md
+
 This module provides functionality to initialize the database schema
 by creating all tables defined in SQLAlchemy models. It should be run
 once when setting up the application or when database models are updated.
+
+Note: In production and ongoing development, use Alembic migrations for all
+database schema changes to maintain version control and enable safe rollbacks.
 """
 
 import sys
