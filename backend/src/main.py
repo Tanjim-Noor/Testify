@@ -13,6 +13,7 @@ from sqlalchemy import text
 
 from src.config.settings import settings
 from src.config.database import get_db
+from src.routes import auth
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +37,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include authentication router
+app.include_router(auth.router)
 
 
 @app.on_event("startup")
