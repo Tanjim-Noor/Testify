@@ -26,11 +26,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import all models to ensure they are registered with Base
-# This must be done at module level to avoid wildcard import issues
+# This must be done at module level before calling create_all
 try:
-    from src.models import *  # noqa: F401, F403
-except ImportError:
+    from src.models.user import User
+    from src.models.question import Question
+    from src.models.exam import Exam
+    from src.models.exam_question import ExamQuestion
+    from src.models.student_exam import StudentExam
+    from src.models.student_answer import StudentAnswer
+    logger.info("All models imported successfully")
+except ImportError as e:
     # Models may not be defined yet, which is okay during initial setup
+    logger.warning(f"Could not import all models: {str(e)}")
     pass
 
 
