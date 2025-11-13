@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     APP_TITLE: str = "Online Exam Management System"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
+    # Project base directory available from settings for convenience in other modules
+    BASE_DIR: Path = BASE_DIR
     
     class Config:
         """Pydantic configuration for BaseSettings."""

@@ -14,6 +14,7 @@ from sqlalchemy import text
 from src.config.settings import settings
 from src.config.database import get_db
 from src.routes import auth
+from src.routes import question as question_routes
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,6 +41,7 @@ app.add_middleware(
 
 # Include authentication router
 app.include_router(auth.router)
+app.include_router(question_routes.router)
 
 
 @app.on_event("startup")
@@ -49,6 +51,15 @@ async def startup_event():
     Logs startup message and can be used for initialization tasks.
     """
     logger.info("Application started successfully")
+    # Ensure uploads directory exists for temporary file storage
+    try:
+        from pathlib import Path
+
+        uploads_dir = Path(str(settings.BASE_DIR)) / "uploads"
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+        logger.info("Ensured uploads directory exists at: %s", uploads_dir)
+    except Exception as e:
+        logger.warning("Could not ensure uploads directory exists: %s", e)
 
 
 @app.get("/health", tags=["Health"])
