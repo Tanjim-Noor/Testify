@@ -7,6 +7,7 @@ startup event handlers, and core health check endpoint.
 
 import logging
 from fastapi import FastAPI, Depends
+from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -21,13 +22,34 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI application
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan handler to perform startup and shutdown tasks.
+    Replaces deprecated on_event startup/shutdown handlers.
+    """
+    logger.info("Application starting")
+    try:
+        from pathlib import Path
+
+        uploads_dir = Path(str(settings.BASE_DIR)) / "uploads"
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+        logger.info("Ensured uploads directory exists at: %s", uploads_dir)
+    except Exception as e:
+        logger.warning("Could not ensure uploads directory exists: %s", e)
+    yield
+    logger.info("Application shutdown")
+
+
 app = FastAPI(
     title=settings.APP_TITLE,
     description="Backend API for managing online exams, question banks, and student assessments",
     version=settings.APP_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+# Add lifespan parameter to ensure the context manager runs on startup/shutdown
+    openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
 
 # Configure CORS middleware
@@ -42,24 +64,6 @@ app.add_middleware(
 # Include authentication router
 app.include_router(auth.router)
 app.include_router(question_routes.router)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """
-    Event handler that runs when the application starts.
-    Logs startup message and can be used for initialization tasks.
-    """
-    logger.info("Application started successfully")
-    # Ensure uploads directory exists for temporary file storage
-    try:
-        from pathlib import Path
-
-        uploads_dir = Path(str(settings.BASE_DIR)) / "uploads"
-        uploads_dir.mkdir(parents=True, exist_ok=True)
-        logger.info("Ensured uploads directory exists at: %s", uploads_dir)
-    except Exception as e:
-        logger.warning("Could not ensure uploads directory exists: %s", e)
 
 
 @app.get("/health", tags=["Health"])

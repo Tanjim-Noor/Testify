@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Literal, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field, constr, conint
+from pydantic import BaseModel, Field, constr, conint, ConfigDict
 
 
 QuestionTypeLiteral = Literal["single_choice", "multi_choice", "text", "image_upload"]
@@ -37,8 +37,7 @@ class QuestionBase(BaseModel):
     max_score: conint(ge=1) = Field(1, description="Maximum score obtainable for the question")
     tags: Optional[List[str]] = Field(None, description="List of tags associated with the question")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(json_schema_extra={
             "example": {
                 "title": "Simple algebra question",
                 "description": "Solve for x in 2x + 3 = 7",
@@ -49,7 +48,7 @@ class QuestionBase(BaseModel):
                 "max_score": 1,
                 "tags": ["math", "algebra"]
             }
-        }
+        })
 
 
 class QuestionCreate(QuestionBase):
@@ -65,8 +64,7 @@ class QuestionResponse(QuestionBase):
     id: UUID = Field(..., description="Unique identifier for the question")
     created_at: datetime = Field(..., description="Creation timestamp")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ImportRowError(BaseModel):
@@ -83,8 +81,7 @@ class ImportResult(BaseModel):
     error_count: int = Field(..., description="Number of rows that had errors and were skipped")
     errors: List[ImportRowError] = Field(default_factory=list, description="List of per-row errors")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(json_schema_extra={
             "example": {
                 "success_count": 20,
                 "error_count": 2,
@@ -93,4 +90,4 @@ class ImportResult(BaseModel):
                     {"row_number": 4, "errors": ["Options required for single_choice type"]}
                 ]
             }
-        }
+        })

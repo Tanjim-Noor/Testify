@@ -8,7 +8,7 @@ providing centralized configuration management for the entire application.
 import os
 from pathlib import Path
 from typing import List
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Get the project root directory (backend folder)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -50,12 +50,13 @@ class Settings(BaseSettings):
     # Project base directory available from settings for convenience in other modules
     BASE_DIR: Path = BASE_DIR
     
-    class Config:
-        """Pydantic configuration for BaseSettings."""
-        env_file = str(ENV_FILE)
-        env_file_encoding = 'utf-8'
-        case_sensitive = True
-        extra = "ignore"  # Ignore extra fields from .env (e.g., POSTGRES_* for Docker)
+    # Pydantic model configuration (v2 style)
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE),
+        env_file_encoding='utf-8',
+        case_sensitive=True,
+        extra="ignore",  # Ignore extra fields from .env (e.g., POSTGRES_* for Docker)
+    )
 
 
 # Create a global settings instance

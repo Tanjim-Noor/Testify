@@ -7,7 +7,7 @@ This module defines validation schemas for user registration, login, and respons
 from datetime import datetime
 from typing import Literal
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
 class UserCreate(BaseModel):
@@ -24,14 +24,13 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=8, description="Password (minimum 8 characters)")
     role: Literal["admin", "student"] = Field(..., description="User role")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(json_schema_extra={
             "example": {
                 "email": "john@example.com",
                 "password": "securePassword123",
                 "role": "student"
             }
-        }
+        })
 
 
 class UserLogin(BaseModel):
@@ -46,13 +45,12 @@ class UserLogin(BaseModel):
     email: EmailStr = Field(..., description="User's email address")
     password: str = Field(..., description="User's password")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(json_schema_extra={
             "example": {
                 "email": "john@example.com",
                 "password": "securePassword123"
             }
-        }
+        })
 
 
 class UserResponse(BaseModel):
@@ -71,16 +69,14 @@ class UserResponse(BaseModel):
     role: str = Field(..., description="User's role")
     created_at: datetime = Field(..., description="Account creation timestamp")
     
-    class Config:
-        from_attributes = True
-        json_schema_extra = {
+    model_config = ConfigDict(from_attributes=True, json_schema_extra={
             "example": {
                 "id": "550e8400-e29b-41d4-a716-446655440000",
                 "email": "john@example.com",
                 "role": "student",
                 "created_at": "2024-01-15T10:30:00"
             }
-        }
+        })
 
 
 class TokenResponse(BaseModel):
@@ -97,8 +93,7 @@ class TokenResponse(BaseModel):
     token_type: str = Field(default="bearer", description="Token type")
     user: UserResponse = Field(..., description="User information")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(json_schema_extra={
             "example": {
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 "token_type": "bearer",
@@ -109,4 +104,4 @@ class TokenResponse(BaseModel):
                     "created_at": "2024-01-15T10:30:00"
                 }
             }
-        }
+        })
