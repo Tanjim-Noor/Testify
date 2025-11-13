@@ -2,162 +2,163 @@
 
 FastAPI backend for the Online Exam Management System.
 
-## Setup Instructions
+## Prerequisites
 
-### 1. Prerequisites
-- Python 3.8 or higher
-- PostgreSQL (will be set up in Phase 2)
+- Python 3.9+
+- Docker & Docker Compose
+- Git
 
-### 2. Virtual Environment Setup
+## Project Setup
+
+### 1. Clone and Navigate
+
+```powershell
+git clone <repository-url>
+cd backend
+```
+
+### 2. Create Virtual Environment
 
 **Windows (PowerShell):**
 ```powershell
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment
 python -m venv venv
-
-# Activate virtual environment
 .\venv\Scripts\Activate.ps1
-
-# If you get execution policy error, run:
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# Install dependencies
-pip install -r requirements.txt
 ```
 
 **Linux/Mac:**
 ```bash
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment
 python3 -m venv venv
-
-# Activate virtual environment
 source venv/bin/activate
+```
 
-# Install dependencies
+### 3. Install Dependencies
+
+```powershell
 pip install -r requirements.txt
 ```
 
-### 3. Environment Configuration
+### 4. Environment Configuration
 
-Copy the example environment file and configure your settings:
 ```powershell
-cp .env.example .env
+Copy-Item .env.example .env
 ```
 
-Edit `.env` with your configuration values (database URL, JWT secret, etc.)
+Edit `.env` with your settings (default values are provided in `.env.example`).
 
-### 4. Running the Application
+## Database Setup
 
-**Option 1 - Using run.py (with venv activated):**
+### Start Docker Containers
+
 ```powershell
-# Activate venv first
-.\venv\Scripts\Activate.ps1
-
-# Run the server
-python run.py
+cd docker
+docker-compose up -d
+cd ..
 ```
 
-**Option 2 - Using PowerShell script (Windows):**
+Verify containers are running:
+```powershell
+docker-compose -f docker/docker-compose.yml ps
+```
+
+### Initialize Database
+
+```powershell
+python src/config/init_db.py
+```
+
+### Access Database (pgAdmin)
+
+- **URL:** http://localhost:5050
+- **Email:** admin@testify.local
+- **Password:** admin_password
+
+To register PostgreSQL server in pgAdmin:
+- **Host:** postgres
+- **Port:** 5432
+- **Username:** admin
+- **Password:** admin_password
+- **Database:** testify_db
+
+## Running the Application
+
+### Start FastAPI Server
+
+**Windows (PowerShell):**
 ```powershell
 .\run_server.ps1
 ```
 
-**Option 3 - Direct uvicorn command (with venv activated):**
+**Or manually:**
 ```powershell
-# Activate venv first
-.\venv\Scripts\Activate.ps1
+python -m uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-# Run uvicorn
+**Linux/Mac:**
+```bash
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 5. Verify Installation
+### Access API
 
-Once the server is running, test the endpoints:
-
-**Health Check:**
-```powershell
-curl http://localhost:8000/health
-# Expected: {"status":"healthy"}
-```
-
-**API Documentation:**
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- **API Docs:** http://localhost:8000/docs
+- **Alternative Docs:** http://localhost:8000/redoc
+- **Health Check:** http://localhost:8000/health
+- **Database Health:** http://localhost:8000/db-health
 
 ## Project Structure
 
 ```
 backend/
 ├── src/
-│   ├── config/         # Configuration and settings
-│   ├── models/         # Database models (SQLAlchemy)
-│   ├── schemas/        # Pydantic schemas
-│   ├── routes/         # API route handlers
-│   ├── services/       # Business logic
-│   ├── utils/          # Utility functions
-│   └── main.py         # FastAPI application entry point
-├── tests/              # Test suite
-├── venv/               # Virtual environment (not in git)
-├── requirements.txt    # Python dependencies
-├── run.py             # Development server script
-└── .env               # Environment variables (not in git)
+│   ├── config/
+│   │   ├── settings.py       # Configuration
+│   │   ├── database.py       # SQLAlchemy setup
+│   │   └── init_db.py        # Database initialization
+│   ├── models/               # Database models
+│   ├── routes/               # API endpoints
+│   ├── schemas/              # Request/response schemas
+│   ├── services/             # Business logic
+│   ├── utils/                # Utilities
+│   └── main.py              # FastAPI app entry
+├── tests/                   # Test files
+├── docker/                  # Docker configuration
+│   └── docker-compose.yml   # Docker services
+├── .env.example            # Environment template
+├── requirements.txt        # Python dependencies
+└── README.md              # This file
 ```
 
-## Development
+## Environment Variables
 
-### Running Tests
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | postgresql://admin:admin_password@localhost:5432/testify_db | PostgreSQL connection |
+| `POSTGRES_DB` | testify_db | Database name |
+| `POSTGRES_USER` | admin | Database user |
+| `POSTGRES_PASSWORD` | admin_password | Database password |
+| `PGADMIN_DEFAULT_EMAIL` | admin@testify.local | pgAdmin login email |
+| `PGADMIN_DEFAULT_PASSWORD` | admin_password | pgAdmin login password |
+| `JWT_SECRET` | your-secret-key-change-in-production | JWT signing key |
+| `JWT_EXPIRATION` | 30 | Token expiration (minutes) |
+
+## Testing
+
 ```powershell
-# Activate venv first
-.\venv\Scripts\Activate.ps1
-
-# Run tests
 pytest
 ```
 
-### Adding Dependencies
-```powershell
-# Activate venv first
-.\venv\Scripts\Activate.ps1
-
-# Install new package
-pip install package-name
-
-# Update requirements.txt
-pip freeze > requirements.txt
-```
-
-## API Endpoints
-
-### Current Endpoints (Phase 1)
-- `GET /` - Root endpoint with API information
-- `GET /health` - Health check endpoint
-- `GET /docs` - Swagger UI documentation
-- `GET /redoc` - ReDoc documentation
-
-### Upcoming Endpoints
-See `project phases/` directory for detailed phase information.
-
 ## Technologies
 
-- **FastAPI** - Modern, fast web framework
-- **SQLAlchemy** - SQL toolkit and ORM
-- **PostgreSQL** - Database (Phase 2)
+- **FastAPI** - Web framework
+- **SQLAlchemy** - ORM
+- **PostgreSQL** - Database
 - **Pydantic** - Data validation
-- **JWT** - Authentication (Phase 4)
-- **pytest** - Testing framework
+- **Docker** - Containerization
 
 ## Next Steps
 
-Complete the remaining phases in sequence:
-1. ✅ Phase 1: Project Setup (Complete)
-2. Phase 2: Database Setup
-3. Phase 3: Database Models
-4. Phase 4: Authentication System
-5. ... (See `project phases/phase_00_overview.md`)
+See `project phases/` directory for detailed phase information:
+- Phase 2: Database Setup ✅
+- Phase 3: Database Models
+- Phase 4: Authentication
+- Phase 5+: Features

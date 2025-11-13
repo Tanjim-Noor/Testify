@@ -6,10 +6,13 @@ startup event handlers, and core health check endpoint.
 """
 
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from src.config.settings import settings
+from src.config.database import get_db
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -53,6 +56,41 @@ async def health_check():
         dict: Status information indicating the application is healthy
     """
     return {"status": "healthy"}
+
+
+@app.get("/db-health", tags=["Health"])
+async def db_health_check(db: Session = Depends(get_db)):
+    """
+    Database health check endpoint to verify database connectivity.
+    
+    This endpoint attempts to create a database session and execute a simple query
+    to verify that the database connection is working properly.
+    
+    Args:
+        db: Database session provided by dependency injection
+    
+    Returns:
+        dict: Status information including database connectivity status
+    
+    Raises:
+        HTTPException: If unable to connect to the database
+    """
+    try:
+        # Execute a simple query to test database connectivity
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "message": "Database connection successful"
+        }
+    except Exception as e:
+        # Log the error and return failure status
+        logger.error(f"Database health check failed: {str(e)}")
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": str(e)
+        }
 
 
 # Health check root endpoint

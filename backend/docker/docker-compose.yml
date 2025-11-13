@@ -1,0 +1,62 @@
+name: Online Exam Management System
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:15
+    container_name: testify_postgres
+    environment:
+      # PostgreSQL superuser credentials
+      POSTGRES_DB: ${POSTGRES_DB:-testify_db}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin_password}
+    ports:
+      # Expose PostgreSQL on port 5432 for local development
+      - "5432:5432"
+    volumes:
+      # Named volume for persistent database storage
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      # Connect to shared network for inter-service communication
+      - testify_network
+    healthcheck:
+      # Health check to ensure database is ready before dependent services start
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-testify_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # pgAdmin Database GUI Management Service
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: testify_pgadmin
+    environment:
+      # pgAdmin default login credentials
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@testify.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin_password}
+    ports:
+      # Map port 80 inside container to port 5050 on host machine
+      - "5050:80"
+    volumes:
+      # Named volume for pgAdmin configuration persistence
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      # Connect to shared network
+      - testify_network
+    depends_on:
+      postgres:
+        # Ensure PostgreSQL is healthy before starting pgAdmin
+        condition: service_healthy
+
+# Named volumes for persistent data storage
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# Custom network for service communication
+networks:
+  testify_network:
+    driver: bridge

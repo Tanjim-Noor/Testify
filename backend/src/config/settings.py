@@ -5,8 +5,14 @@ This module loads and validates environment variables using python-dotenv,
 providing centralized configuration management for the entire application.
 """
 
+import os
+from pathlib import Path
 from typing import List
 from pydantic_settings import BaseSettings
+
+# Get the project root directory (backend folder)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+ENV_FILE = BASE_DIR / ".env"
 
 
 class Settings(BaseSettings):
@@ -22,7 +28,8 @@ class Settings(BaseSettings):
     """
     
     # Database Configuration
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/testify_db"
+    # Uses 'postgres' service name for Docker, 'localhost' for local development
+    DATABASE_URL: str = "postgresql://admin:admin_password@postgres:5432/testify_db"
     
     # JWT Configuration
     JWT_SECRET: str = "your-secret-key-change-in-production"
@@ -43,8 +50,10 @@ class Settings(BaseSettings):
     
     class Config:
         """Pydantic configuration for BaseSettings."""
-        env_file = ".env"
+        env_file = str(ENV_FILE)
+        env_file_encoding = 'utf-8'
         case_sensitive = True
+        extra = "ignore"  # Ignore extra fields from .env (e.g., POSTGRES_* for Docker)
 
 
 # Create a global settings instance
