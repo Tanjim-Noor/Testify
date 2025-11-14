@@ -10,4 +10,5 @@ from . import exam_service  # noqa: F401
 from . import grading_service  # noqa: F401
 from . import student_exam_service  # noqa: F401
 from . import answer_service  # noqa: F401
+from . import results_service  # noqa: F401
 
