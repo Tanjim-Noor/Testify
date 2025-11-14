@@ -5,7 +5,7 @@ This module defines the StudentAnswer model representing a student's answer to a
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, Boolean, Float, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -28,7 +28,11 @@ class StudentAnswer(Base):
     answer_value = Column(JSONB, nullable=False)  # Stores any answer format
     is_correct = Column(Boolean, nullable=True)  # Computed after grading
     score = Column(Float, nullable=True)  # Computed after grading
-    last_updated = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_updated = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
     
     # Relationships
     student_exam = relationship(

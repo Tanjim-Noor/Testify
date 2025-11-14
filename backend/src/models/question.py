@@ -6,7 +6,7 @@ This module defines the Question model representing exam questions with various 
 
 import uuid
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, Integer, DateTime, ARRAY
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -41,7 +41,7 @@ class Question(Base):
     correct_answers = Column(JSONB, nullable=False)  # Can be null for text/image
     max_score = Column(Integer, nullable=False, default=1)
     tags = Column(ARRAY(String), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     exam_questions = relationship(

@@ -5,7 +5,7 @@ This module defines the Exam model representing exams created by admins.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, Integer, Boolean, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -30,7 +30,7 @@ class Exam(Base):
     duration_minutes = Column(Integer, nullable=False)
     is_published = Column(Boolean, default=False, nullable=False)
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     creator = relationship(
@@ -55,3 +55,14 @@ class Exam(Base):
     def __repr__(self) -> str:
         """String representation of Exam instance."""
         return f"<Exam(id={self.id}, title={self.title}, is_published={self.is_published})>"
+
+    @property
+    def question_count(self) -> int:
+        """Return the number of questions assigned to this exam.
+
+        This property is convenient for API responses to include a quick count
+        without requiring a separate query. It will rely on the in-memory
+        relationship collection and therefore may cause a JOIN to fetch related
+        rows if not already loaded.
+        """
+        return len(self.exam_questions or [])
