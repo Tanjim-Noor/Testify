@@ -6,9 +6,10 @@ This module defines schemas for question creation, response and import errors.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import Generic, List, Literal, Optional, TypeVar, Sequence
 from uuid import UUID
 from pydantic import BaseModel, Field, constr, conint, ConfigDict
+from pydantic import BaseModel
 
 
 QuestionTypeLiteral = Literal["single_choice", "multi_choice", "text", "image_upload"]
@@ -91,3 +92,45 @@ class ImportResult(BaseModel):
                 ]
             }
         })
+
+
+# Query/filter and pagination schemas for listing endpoints
+T = TypeVar("T")
+
+
+class QuestionFilter(BaseModel):
+    """Query parameters for filtering question lists.
+
+    - complexity: optional filter by the complexity field
+    - type: optional filter by question type
+    - tags: optional list of tags; any overlapping tag matches
+    - search: full-text like search applied to title and description
+    """
+
+    complexity: Optional[str] = Field(None, description="Filter by complexity/class level")
+    type: Optional[QuestionTypeLiteral] = Field(None, description="Filter by question type")
+    tags: Optional[List[str]] = Field(None, description="Filter by one or more tags; questions matching ANY tag returned")
+    search: Optional[str] = Field(None, description="Search text to match against title/description (case-insensitive, partial)")
+
+
+class PaginationParams(BaseModel):
+    """Pagination parameters used in list endpoints.
+
+    Validations: page >= 1, limit between 1 and 100
+    """
+
+    page: int = Field(1, ge=1, description="Page number (1-based)")
+    limit: int = Field(20, ge=1, le=100, description="Page size (max 100)")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Generic paginated response wrapper.
+
+    Provides consistent API output format for paginated endpoints.
+    """
+
+    data: Sequence[T]
+    total: int = Field(..., description="Total number of items available")
+    page: int = Field(..., description="Returned page number")
+    limit: int = Field(..., description="Returned page size")
+

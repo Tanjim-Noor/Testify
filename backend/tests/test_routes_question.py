@@ -44,3 +44,88 @@ def test_import_route_success(monkeypatch, tmp_path: Path):
     data = response.json()
     assert data["success_count"] == 1
     assert data["error_count"] == 0
+
+
+def test_question_crud_routes(monkeypatch):
+    client = TestClient(app)
+
+    # Allow admin access
+    app.dependency_overrides.clear()
+    from src.utils.dependencies import get_current_admin
+    app.dependency_overrides[get_current_admin] = lambda: True
+
+    from types import SimpleNamespace
+
+    # Mock list
+    fake_q = SimpleNamespace(
+        id="00000000-0000-0000-0000-000000000001",
+        title="A question",
+        description="desc",
+        complexity="easy",
+        type="single_choice",
+        options=["A", "B"],
+        correct_answers=["A"],
+        max_score=1,
+        tags=["math"],
+        created_at="2024-01-01T00:00:00Z",
+    )
+
+    monkeypatch.setattr(
+        "src.services.question_service.get_questions",
+        lambda db, filters, pagination: ([fake_q], 1),
+    )
+
+    response = client.get("/api/admin/questions")
+    assert response.status_code == 200
+    result = response.json()
+    assert result["total"] == 1
+    assert len(result["data"]) == 1
+
+    # Mock get single
+    monkeypatch.setattr(
+        "src.services.question_service.get_question_by_id",
+        lambda db, qid: fake_q,
+    )
+
+    response = client.get(f"/api/admin/questions/{fake_q.id}")
+    assert response.status_code == 200
+    assert response.json()["id"] == fake_q.id
+
+    # Mock create
+    monkeypatch.setattr(
+        "src.services.question_service.create_question",
+        lambda db, payload: fake_q,
+    )
+
+    payload = {
+        "title": "A question",
+        "description": "desc",
+        "complexity": "easy",
+        "type": "single_choice",
+        "options": ["A", "B"],
+        "correct_answers": ["A"],
+        "max_score": 1,
+        "tags": ["math"],
+    }
+
+    response = client.post("/api/admin/questions", json=payload)
+    assert response.status_code == 201
+
+    # Mock update
+    monkeypatch.setattr(
+        "src.services.question_service.update_question",
+        lambda db, qid, payload: fake_q,
+    )
+
+    response = client.put(f"/api/admin/questions/{fake_q.id}", json=payload)
+    assert response.status_code == 200
+
+    # Mock delete
+    monkeypatch.setattr(
+        "src.services.question_service.delete_question",
+        lambda db, qid: True,
+    )
+
+    response = client.delete(f"/api/admin/questions/{fake_q.id}")
+    assert response.status_code == 200
+    assert response.json()["message"] == "Question deleted"
