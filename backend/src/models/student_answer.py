@@ -28,8 +28,6 @@ class StudentAnswer(Base):
     answer_value = Column(JSONB, nullable=False)  # Stores any answer format
     is_correct = Column(Boolean, nullable=True)  # Computed after grading
     score = Column(Float, nullable=True)  # Computed after grading
-    graded_at = Column(DateTime(timezone=True), nullable=True)
-    graded_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     last_updated = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

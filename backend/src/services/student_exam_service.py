@@ -20,7 +20,6 @@ from src.models.exam_question import ExamQuestion
 from src.models.question import Question
 from src.schemas.student_exam import AnswerSubmission
 from src.services.answer_service import get_student_answers
-from src.services import grading_service
 
 logger = logging.getLogger(__name__)
 
@@ -209,13 +208,6 @@ def submit_exam(db: Session, student_exam_id: UUID, student_id: UUID) -> Student
 
         se.status = ExamStatus.SUBMITTED
         se.submitted_at = datetime.now(timezone.utc)
-        # Trigger auto-grading synchronously. Important to not block submission if grading fails.
-        try:
-            total_score = grading_service.grade_student_exam(db, student_exam_id)
-            # Store total score in the StudentExam instance
-            se.total_score = total_score
-        except Exception:
-            logger.exception("Grading failed for student_exam %s; proceeding with submission", student_exam_id)
         db.commit()
         db.refresh(se)
         return se

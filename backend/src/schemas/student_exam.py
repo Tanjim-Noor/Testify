@@ -74,10 +74,6 @@ class ExamSubmitResponse(BaseModel):
     student_exam_id: UUID = Field(..., description="StudentExam id")
     submitted_at: datetime = Field(..., description="Submission timestamp")
     message: str = Field(..., description="Human readable message")
-    total_score: Optional[float] = Field(None, description="Total score calculated for objective questions")
-    graded_count: int = Field(0, description="Number of questions automatically graded")
-    pending_review_count: int = Field(0, description="Number of questions requiring manual review")
-    grading_results: List[GradingResult] = Field(default_factory=list, description="Per-question grading results")
 
 
 class ExamDetailsLite(BaseModel):
@@ -101,17 +97,3 @@ class ExamSessionResponse(BaseModel):
     answers: Dict[UUID, dict] = Field(default_factory=dict)
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class GradingResult(BaseModel):
-    question_id: UUID = Field(..., description="Question id")
-    is_correct: Optional[bool] = Field(None, description="Whether the answer was correct (None if manual review)")
-    score: Optional[float] = Field(None, description="Score awarded for this question (None if pending review)")
-    max_score: int = Field(..., description="Maximum score for the question")
-    requires_manual_review: bool = Field(False, description="True if grading requires manual review")
-
-
-class ManualGradeRequest(BaseModel):
-    score: float = Field(..., description="Score to assign to this answer")
-    feedback: Optional[str] = Field(None, description="Optional feedback from grader")
-

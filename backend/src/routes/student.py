@@ -13,8 +13,6 @@ from src.config.database import get_db
 from src.utils.dependencies import get_current_student
 from src.services import student_exam_service, answer_service
 from src.schemas.student_exam import AvailableExamResponse, StudentExamResponse, ExamSessionResponse, AnswerSubmission, ExamSubmitResponse, ExamDetailsLite
-from src.schemas.student_exam import GradingResult
-from src.models.student_answer import StudentAnswer
 from src.schemas.question import QuestionResponse
 from src.models.student_exam import ExamStatus
 
@@ -140,34 +138,7 @@ def submit_exam(student_exam_id: UUID, student=Depends(get_current_student), db:
     """Submit the student's exam. Validates ownership and status."""
     try:
         se = student_exam_service.submit_exam(db, student_exam_id, student.id)
-
-        # Compute grading counts and per-question grading results
-        graded_count = db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == se.id, StudentAnswer.score != None).count()
-        pending_review_count = db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == se.id, StudentAnswer.score == None).count()
-
-        # Build per-question grading results
-        grading_rows = db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == se.id).all()
-        grading_results = []
-        for r in grading_rows:
-            q = r.question
-            requires_manual = r.score is None
-            grading_results.append(GradingResult(
-                question_id=r.question_id,
-                is_correct=r.is_correct,
-                score=r.score,
-                max_score=q.max_score if q else 0,
-                requires_manual_review=requires_manual,
-            ))
-
-        return ExamSubmitResponse(
-            student_exam_id=se.id,
-            submitted_at=se.submitted_at,
-            message="Submitted successfully",
-            total_score=se.total_score,
-            graded_count=graded_count,
-            pending_review_count=pending_review_count,
-            grading_results=grading_results,
-        )
+        return ExamSubmitResponse(student_exam_id=se.id, submitted_at=se.submitted_at, message="Submitted successfully")
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except PermissionError as e:
