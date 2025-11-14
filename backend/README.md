@@ -361,6 +361,52 @@ pytest -q -m integration
 The repository contains separate integration test files for major features:
 - `tests/test_integration_question_service.py` - questions/service import & DB checks
 - `tests/test_integration_exam_service.py` - exam lifecycle: create -> assign -> publish
+ - `tests/phase_08_student_exam/test_integration_student_exam.py` - student exam lifecycle integration tests (start, answers, submit, auto-expire)
+
+Phase-based test organization
+----------------------------
+
+Tests are now organized by development phase in the `tests/` folder. Each phase folder contains unit/integration tests relevant to that phase. This organization makes it easier to run and maintain tests as features are implemented incrementally.
+
+Example phase folders:
+- `backend/tests/phase_05_excel_import/` - tests for Excel import
+- `backend/tests/phase_06_question_crud/` - question CRUD tests
+- `backend/tests/phase_07_exam_management/` - exam management tests
+- `backend/tests/phase_08_student_exam/` - student exam flow tests
+
+Run only tests for a given phase:
+```powershell
+pytest backend/tests/phase_08_student_exam -q
+Note on running tests from repository root
+---------------------------------------
+
+To make tests import `src` regardless of your current working directory, the test suite includes `backend/tests/conftest.py` which adds the `backend` path to `sys.path`. This means:
+
+- Running pytest from the project root works:
+```powershell
+pytest backend/tests/phase_08_student_exam -q
+```
+- You can also run pytest from `backend` directory if you prefer:
+```powershell
+cd backend
+pytest -q
+```
+
+If you encounter `ModuleNotFoundError: No module named 'src'`, ensure you are running tests from the project root and not using an alternate virtualenv that masks sys.path manipulation. As a workaround you can set `PYTHONPATH` explicitly:
+
+```powershell
+$env:PYTHONPATH = "${PWD}\backend"
+pytest backend/tests/phase_08_student_exam -q
+```
+```
+
+Run a single test file or a test function:
+```powershell
+pytest backend/tests/phase_08_student_exam/test_routes_student.py -q
+pytest backend/tests/phase_08_student_exam/test_routes_student.py::test_start_exam -q
+```
+
+Tip: use `-k <expr>` to selectively run tests by keyword, for example `pytest -k student -q`.
 
 Note: After making schema changes (for example timezone-aware defaults), Alembic's autogenerate may produce an empty migration if changes are only Python-level defaults. This is expected; however if you need the DB to reflect server defaults or new indexes, add them manually to the migration file under `alembic/versions/` before running `alembic upgrade head`.
 
