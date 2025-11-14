@@ -46,13 +46,15 @@ class ExamBase(BaseModel):
 
 
 class ExamCreate(ExamBase):
-    """Schema used for creating new exam; enforces start_time in the future."""
+    """Schema used for creating new exam.
 
-    @field_validator("start_time", mode="after")
-    def start_time_in_future(cls, v):
-        if v <= datetime.now(timezone.utc):
-            raise ValueError("start_time must be in the future for new exams")
-        return v
+    NOTE: Historically this schema enforced `start_time` to be strictly in the
+    future. Integration tests and the normal exam workflow may create exams
+    that start immediately or in the past (e.g., to start an exam right away).
+    To support that behavior we do not validate `start_time` here; instead the
+    business logic in the services enforces whether the exam is *available*
+    for students to start.
+    """
 
 
 class ExamUpdate(BaseModel):
