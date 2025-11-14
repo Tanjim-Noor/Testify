@@ -21,6 +21,16 @@ from src.models.student_exam import ExamStatus
 router = APIRouter(prefix="/api/student", tags=["Student Exams"])
 
 
+def _ensure_aware(dt: datetime | None) -> datetime | None:
+    """Convert naive datetimes (SQLite) to UTC-aware for comparisons."""
+
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 @router.get("/exams", response_model=List[AvailableExamResponse])
 def list_exams(student=Depends(get_current_student), db: Session = Depends(get_db)):
     """List exams available to the authenticated student."""
@@ -28,9 +38,14 @@ def list_exams(student=Depends(get_current_student), db: Session = Depends(get_d
     now = datetime.now(timezone.utc)
     result = []
     for e in exams:
-        if now < e.start_time:
+        start_time = _ensure_aware(e.start_time)
+        end_time = _ensure_aware(e.end_time)
+        if not start_time or not end_time:
+            continue
+
+        if now < start_time:
             status = "upcoming"
-        elif e.start_time <= now <= e.end_time:
+        elif start_time <= now <= end_time:
             status = "available"
         else:
             status = "ended"
@@ -53,10 +68,7 @@ def start_exam(exam_id: UUID, student=Depends(get_current_student), db: Session 
     """Start an exam for the student. Returns 201 when created new, 200 on resume."""
     try:
         se = student_exam_service.start_exam(db, exam_id, student.id)
-        status_code = status.HTTP_201_CREATED
-        # If the student is resuming an in-progress exam, return 200
-        if getattr(se, "status", None) == ExamStatus.IN_PROGRESS or (hasattr(se, "status") and getattr(se.status, "value", None) == ExamStatus.IN_PROGRESS.value):
-            status_code = status.HTTP_200_OK
+        status_code = status.HTTP_200_OK if getattr(se, "_resumed", False) else status.HTTP_201_CREATED
 
         # Build a plain dict to avoid nested attribute types from model validation
         student_exam_payload = {
