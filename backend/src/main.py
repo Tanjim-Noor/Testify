@@ -17,6 +17,7 @@ from src.config.database import get_db
 from src.routes import auth
 from src.routes import question as question_routes
 from src.routes import exam as exam_routes
+from src.routes import student as student_routes
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -66,6 +67,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(question_routes.router)
 app.include_router(exam_routes.router)
+app.include_router(student_routes.router)
 
 
 @app.get("/health", tags=["Health"])
