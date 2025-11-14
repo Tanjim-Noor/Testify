@@ -351,9 +351,18 @@ alembic revision --autogenerate -m "Add indexes to questions"
 4. Apply migrations and run only integration tests:
 
 ```powershell
+# Apply DB migrations (ensure you reviewed autogen'd file and adjusted any server-side defaults or indexes)
 alembic upgrade head
+
+# Run only integration tests (these hit the running Postgres instance)
 pytest -q -m integration
 ```
+
+The repository contains separate integration test files for major features:
+- `tests/test_integration_question_service.py` - questions/service import & DB checks
+- `tests/test_integration_exam_service.py` - exam lifecycle: create -> assign -> publish
+
+Note: After making schema changes (for example timezone-aware defaults), Alembic's autogenerate may produce an empty migration if changes are only Python-level defaults. This is expected; however if you need the DB to reflect server defaults or new indexes, add them manually to the migration file under `alembic/versions/` before running `alembic upgrade head`.
 
 If `pytest` reports the integration test was skipped, check that Docker containers are running and `DATABASE_URL` in `.env` is configured to point to the running Postgres instance (commented examples exist in `.env.example`).
 
