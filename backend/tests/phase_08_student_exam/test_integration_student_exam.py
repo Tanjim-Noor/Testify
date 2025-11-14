@@ -9,11 +9,14 @@ from sqlalchemy.exc import OperationalError
 from src.config.settings import settings
 from src.config.database import SessionLocal
 from src.schemas.user import UserCreate
+from uuid import uuid4
 from src.schemas.question import QuestionCreate
 from src.schemas.exam import ExamCreate, ExamQuestionAssignment, ExamUpdate
 from src.services import auth_service, question_service, exam_service, student_exam_service, answer_service
 from src.schemas.student_exam import AnswerSubmission
 from src.models.user import User
+from typing import cast, Any
+from uuid import UUID
 
 
 def _find_alembic_ini(start_path: Path) -> Path:
@@ -44,9 +47,10 @@ def test_get_available_exams_service():
 
     db = SessionLocal()
     admin_user = None
+    created_q = None
     created_exams = []
     try:
-        admin_user = auth_service.register_user(UserCreate(email="admin_avail@example.com", password="strongpass123", role="admin"), db)
+        admin_user = auth_service.register_user(UserCreate(email=f"admin_avail+{uuid4().hex}@example.com", password="strongpass123", role="admin"), db)
 
         now = datetime.now(timezone.utc)
         # create a question to assign to exams
@@ -79,27 +83,29 @@ def test_get_available_exams_service():
         # Past exam: start and end in the past
         past_start = now - timedelta(days=2)
         past_end = now - timedelta(days=1)
-        exam_service.update_exam(db, e1.id, ExamUpdate(start_time=past_start, end_time=past_end))
+        update_payload = cast(Any, ExamUpdate.model_validate({"start_time": past_start, "end_time": past_end}))
+        exam_service.update_exam(db, cast(UUID, e1.id), cast(Any, update_payload))
 
         # Current exam: started recently and ends in future
         current_start = now - timedelta(minutes=10)
         current_end = now + timedelta(hours=1)
-        exam_service.update_exam(db, e2.id, ExamUpdate(start_time=current_start, end_time=current_end))
+        update_payload = cast(Any, ExamUpdate.model_validate({"start_time": current_start, "end_time": current_end}))
+        exam_service.update_exam(db, cast(UUID, e2.id), cast(Any, update_payload))
 
         # Future exam: leave as-is (already has future_start)
         # Assign the question to all exams
-        assn = [ExamQuestionAssignment(question_id=created_q.id, order_index=0)]
-        exam_service.assign_questions(db, e1.id, assn)
-        exam_service.assign_questions(db, e2.id, assn)
-        exam_service.assign_questions(db, e3.id, assn)
+        assn = [ExamQuestionAssignment(question_id=cast(UUID, created_q.id), order_index=0)]
+        exam_service.assign_questions(db, cast(UUID, e1.id), assn)
+        exam_service.assign_questions(db, cast(UUID, e2.id), assn)
+        exam_service.assign_questions(db, cast(UUID, e3.id), assn)
 
         # Publish all
-        exam_service.publish_exam(db, e1.id, True)
-        exam_service.publish_exam(db, e2.id, True)
-        exam_service.publish_exam(db, e3.id, True)
+        exam_service.publish_exam(db, cast(UUID, e1.id), True)
+        exam_service.publish_exam(db, cast(UUID, e2.id), True)
+        exam_service.publish_exam(db, cast(UUID, e3.id), True)
 
         # student user
-        student = auth_service.register_user(UserCreate(email="avail_student@example.com", password="strongpass123", role="student"), db)
+        student = auth_service.register_user(UserCreate(email=f"avail_student+{uuid4().hex}@example.com", password="strongpass123", role="student"), db)
 
         av = student_exam_service.get_available_exams(db, student.id)
         assert isinstance(av, list)
@@ -112,12 +118,12 @@ def test_get_available_exams_service():
     finally:
         for ex in created_exams:
             try:
-                exam_service.delete_exam(db, ex.id)
+                exam_service.delete_exam(db, cast(UUID, ex.id))
             except Exception:
                 db.rollback()
         if created_q:
             try:
-                question_service.delete_question(db, created_q.id)
+                question_service.delete_question(db, cast(UUID, created_q.id))
             except Exception:
                 db.rollback()
         if admin_user:
@@ -156,8 +162,8 @@ def test_student_exam_start_save_submit():
 
     try:
         # Create admin and student users
-        admin_user = auth_service.register_user(UserCreate(email="admin_student@example.com", password="strongpass123", role="admin"), db)
-        student_user = auth_service.register_user(UserCreate(email="student@example.com", password="strongpass123", role="student"), db)
+        admin_user = auth_service.register_user(UserCreate(email=f"admin_student+{uuid4().hex}@example.com", password="strongpass123", role="admin"), db)
+        student_user = auth_service.register_user(UserCreate(email=f"student+{uuid4().hex}@example.com", password="strongpass123", role="student"), db)
 
         # Create a question
         question_payload = QuestionCreate(
@@ -180,17 +186,18 @@ def test_student_exam_start_save_submit():
         # Update to make it available now
         start = datetime.now(timezone.utc) - timedelta(minutes=1)
         end = datetime.now(timezone.utc) + timedelta(hours=1)
-        exam_service.update_exam(db, created_exam.id, ExamUpdate(start_time=start, end_time=end))
+        update_payload = cast(Any, ExamUpdate.model_validate({"start_time": start, "end_time": end}))
+        exam_service.update_exam(db, cast(UUID, created_exam.id), update_payload)
 
         # Assign question
-        assign_payload = [ExamQuestionAssignment(question_id=created_q.id, order_index=0)]
-        exam_service.assign_questions(db, created_exam.id, assign_payload)
+        assign_payload = [ExamQuestionAssignment(question_id=cast(UUID, created_q.id), order_index=0)]
+        exam_service.assign_questions(db, cast(UUID, created_exam.id), assign_payload)
 
         # Publish
-        exam_service.publish_exam(db, created_exam.id, True)
+        exam_service.publish_exam(db, cast(UUID, created_exam.id), True)
 
         # Start exam for student
-        se = student_exam_service.start_exam(db, created_exam.id, student_user.id)
+        se = student_exam_service.start_exam(db, cast(UUID, created_exam.id), student_user.id)
         assert se is not None
         assert se.status.name == "IN_PROGRESS"
 
@@ -199,16 +206,16 @@ def test_student_exam_start_save_submit():
         q = db.query(Question).filter(Question.id == created_q.id).first()
         assert q is not None
 
-        answer = answer_service.bulk_save_answers(db, se.id, [AnswerSubmission(question_id=created_q.id, answer_value={'text': 'integration'})])
+        answer = answer_service.bulk_save_answers(db, cast(UUID, se.id), [AnswerSubmission(question_id=cast(UUID, created_q.id), answer_value={'text': 'integration'})])
         assert answer == 1
 
         # Ensure student answers exist
         from src.models.student_answer import StudentAnswer
-        saved = db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == se.id).all()
+        saved = db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == cast(UUID, se.id)).all()
         assert len(saved) == 1
 
         # Submit
-        se_sub = student_exam_service.submit_exam(db, se.id, student_user.id)
+        se_sub = student_exam_service.submit_exam(db, cast(UUID, se.id), student_user.id)
         assert se_sub.status.name == "SUBMITTED"
         assert se_sub.submitted_at is not None
 
@@ -220,18 +227,18 @@ def test_student_exam_start_save_submit():
                 from src.models.student_exam import StudentExam
                 from src.models.student_answer import StudentAnswer
 
-                student_exams = db.query(StudentExam).filter(StudentExam.exam_id == created_exam.id).all()
+                student_exams = db.query(StudentExam).filter(StudentExam.exam_id == cast(UUID, created_exam.id)).all()
                 for se in student_exams:
                     # Delete answers first
-                    db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == se.id).delete(synchronize_session=False)
+                    db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == cast(UUID, se.id)).delete(synchronize_session=False)
                     db.delete(se)
                 db.commit()
-                exam_service.delete_exam(db, created_exam.id)
+                exam_service.delete_exam(db, cast(UUID, created_exam.id))
             except Exception:
                 db.rollback()
         if created_q:
             try:
-                question_service.delete_question(db, created_q.id)
+                question_service.delete_question(db, cast(UUID, created_q.id))
             except Exception:
                 db.rollback()
         if admin_user:
@@ -277,8 +284,8 @@ def test_student_exam_auto_expiry():
     created_exam = None
 
     try:
-        admin_user = auth_service.register_user(UserCreate(email="admin_exp@example.com", password="strongpass123", role="admin"), db)
-        student_user = auth_service.register_user(UserCreate(email="student_exp@example.com", password="strongpass123", role="student"), db)
+        admin_user = auth_service.register_user(UserCreate(email=f"admin_exp+{uuid4().hex}@example.com", password="strongpass123", role="admin"), db)
+        student_user = auth_service.register_user(UserCreate(email=f"student_exp+{uuid4().hex}@example.com", password="strongpass123", role="student"), db)
 
         question_payload = QuestionCreate(
             title="Expiry question",
@@ -305,21 +312,22 @@ def test_student_exam_auto_expiry():
         )
         # Create and then update duration to 1 minute so pydantic validation passes
         created_exam = exam_service.create_exam(db, exam_payload, admin_user.id)
-        exam_service.update_exam(db, created_exam.id, ExamUpdate(start_time=start, end_time=end, duration_minutes=1))
-        assign_payload = [ExamQuestionAssignment(question_id=created_q.id, order_index=0)]
-        exam_service.assign_questions(db, created_exam.id, assign_payload)
-        exam_service.publish_exam(db, created_exam.id, True)
+        update_payload = cast(Any, ExamUpdate.model_validate({"start_time": start, "end_time": end, "duration_minutes": 1}))
+        exam_service.update_exam(db, cast(UUID, created_exam.id), update_payload)
+        assign_payload = [ExamQuestionAssignment(question_id=cast(UUID, created_q.id), order_index=0)]
+        exam_service.assign_questions(db, cast(UUID, created_exam.id), assign_payload)
+        exam_service.publish_exam(db, cast(UUID, created_exam.id), True)
 
-        se = student_exam_service.start_exam(db, created_exam.id, student_user.id)
+        se = student_exam_service.start_exam(db, cast(UUID, created_exam.id), student_user.id)
         assert se is not None
 
         # Manually set started_at to be old (more than allowed + grace seconds)
         from src.models.student_exam import StudentExam
-        student_exam_obj = db.query(StudentExam).filter(StudentExam.id == se.id).first()
+        student_exam_obj = db.query(StudentExam).filter(StudentExam.id == cast(UUID, se.id)).first()
         assert student_exam_obj is not None
         # Set started_at in the past exceeding duration + GRACE_SECONDS
         # Use a large delta to ensure it exceeds the allowed duration
-        student_exam_obj.started_at = datetime.now(timezone.utc) - timedelta(minutes=5)
+        cast(Any, student_exam_obj).started_at = datetime.now(timezone.utc) - timedelta(minutes=5)
         db.commit()
 
         # Trigger check
@@ -335,17 +343,17 @@ def test_student_exam_auto_expiry():
                 from src.models.student_exam import StudentExam
                 from src.models.student_answer import StudentAnswer
 
-                student_exams = db.query(StudentExam).filter(StudentExam.exam_id == created_exam.id).all()
+                student_exams = db.query(StudentExam).filter(StudentExam.exam_id == cast(UUID, created_exam.id)).all()
                 for se in student_exams:
-                    db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == se.id).delete(synchronize_session=False)
+                    db.query(StudentAnswer).filter(StudentAnswer.student_exam_id == cast(UUID, se.id)).delete(synchronize_session=False)
                     db.delete(se)
                 db.commit()
-                exam_service.delete_exam(db, created_exam.id)
+                exam_service.delete_exam(db, cast(UUID, created_exam.id))
             except Exception:
                 db.rollback()
         if created_q:
             try:
-                question_service.delete_question(db, created_q.id)
+                question_service.delete_question(db, cast(UUID, created_q.id))
             except Exception:
                 db.rollback()
         if admin_user:
