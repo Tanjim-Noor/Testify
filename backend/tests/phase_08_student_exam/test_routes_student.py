@@ -106,7 +106,25 @@ def test_submit_exam(monkeypatch):
     student_exam_id = str(uuid4())
     se = SimpleNamespace(id=student_exam_id, submitted_at=datetime.now(timezone.utc))
     monkeypatch.setattr("src.services.student_exam_service.submit_exam", lambda db, seid, sid: se)
+    # Provide a fake DB that returns 0 counts for grading queries
+    class FakeQuery:
+        def filter(self, *args, **kwargs):
+            return self
+
+        def count(self):
+            return 0
+        def all(self):
+            return []
+
+    class FakeDB:
+        def query(self, model):
+            return FakeQuery()
+
+    from src.routes.student import get_db
+    app.dependency_overrides[get_db] = lambda: FakeDB()
+
     response = client.post(f"/api/student/exams/{student_exam_id}/submit")
+    app.dependency_overrides.clear()
     assert response.status_code == 200
     data = response.json()
     assert data["student_exam_id"] == student_exam_id

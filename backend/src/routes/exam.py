@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from src.config.database import get_db
 from src.utils.dependencies import get_current_admin
 from src.services import exam_service
+from src.services import grading_service
 from src.schemas.exam import (
     ExamCreate,
     ExamResponse,
@@ -16,9 +17,15 @@ from src.schemas.exam import (
     ExamQuestionAssignment,
     PublishRequest,
 )
+from src.schemas.student_exam import ManualGradeRequest
+from datetime import datetime, timezone
+from src.models.student_answer import StudentAnswer
 from src.schemas.question import QuestionResponse
 
 router = APIRouter(prefix="/api/admin/exams", tags=["Exams"]) 
+
+# Generic admin router for cross-cutting admin endpoints
+admin_router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
 
 @router.post("", response_model=ExamResponse, status_code=status.HTTP_201_CREATED)
@@ -85,6 +92,62 @@ def update_exam(
         return ExamResponse.model_validate(exam)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+
+@admin_router.post("/student-answers/{answer_id}/grade", status_code=status.HTTP_200_OK)
+def manual_grade_answer(
+    answer_id: UUID = Path(..., description="UUID of the student answer to grade"),
+    payload: ManualGradeRequest = None,
+    db: Session = Depends(get_db),
+    admin_user: Any = Depends(get_current_admin),
+):
+    """Admin endpoint to manually grade a student's answer.
+
+    - Validates the provided score is within the question's max_score
+    - Stores feedback inside `answer_value.grader_feedback`
+    - Recalculates StudentExam.total_score after grading
+    """
+    try:
+        ans = db.query(StudentAnswer).filter(StudentAnswer.id == answer_id).first()
+        if not ans:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="StudentAnswer not found")
+
+        q = ans.question
+        if not q:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question for answer not found")
+
+        if payload.score < 0 or payload.score > q.max_score:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Score must be between 0 and {q.max_score}")
+
+        # Update score and is_correct flag (full marks considered correct)
+        ans.score = float(payload.score)
+        ans.is_correct = payload.score == q.max_score
+
+        # store feedback in JSONB answer_value for audit
+        av = ans.answer_value or {}
+        av["grader_feedback"] = payload.feedback
+        ans.answer_value = av
+        # Audit
+        ans.graded_by = admin_user.id
+        ans.graded_at = datetime.now(timezone.utc)
+
+        db.commit()
+
+        # Recalculate student exam total
+        grading_service.regrade_exam(db, ans.student_exam_id)
+
+        db.refresh(ans)
+        return {
+            "id": str(ans.id),
+            "question_id": str(ans.question_id),
+            "score": ans.score,
+            "is_correct": ans.is_correct,
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
