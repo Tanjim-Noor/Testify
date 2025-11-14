@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from typing import cast
 from sqlalchemy.orm import Session
 from src.schemas.exam import ExamCreate
+from src.models.exam import Exam
 from uuid import uuid4
 from datetime import datetime, timezone, timedelta
 
@@ -47,9 +48,10 @@ def test_create_exam_success():
     admin_id = uuid4()
     payload = make_payload()
     created = exam_service.create_exam(cast(Session, db), cast(ExamCreate, payload), admin_id)
+    created = cast(Exam, created)
     assert created is not None
     assert db.committed
-    assert created.title == "Service Test"
+    assert cast(str, created.title) == "Service Test"
 
 
 def test_create_exam_invalid_time_range():
