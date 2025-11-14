@@ -321,9 +321,39 @@ backend/
 
 ## Testing
 
+The project now ships with a comprehensive pytest suite located under `tests/comprehensive testing/`. The suite uses a SQLite-backed test database that is created and destroyed per test via `tests/conftest.py`, ensuring isolation without touching your local Postgres instance. Core fixtures you can reuse in new tests include:
+
+- `test_db` / `db_session`: spin up a temporary SQLite database and transaction-aware SQLAlchemy session.
+- `client`: FastAPI `TestClient` wired to the temporary DB.
+- `admin_user` / `student_user` and their `*_token`/`*_headers` counterparts for authenticated requests.
+- `sample_exam`, `sample_questions`, and `student_exam` to pre-load realistic exam data.
+
+Helper builders such as `create_test_user` and `create_test_exam` live in `tests/helpers.py` so test files stay concise.
+
+Pytest is configured via `pytest.ini` to auto-discover tests, run with `asyncio_mode=auto`, and enforce 80% coverage using `pytest-cov`. HTML coverage reports are emitted to `htmlcov/` by default.
+
 ```powershell
-pytest
+pytest -vv
 ```
+
+To run common suites quickly, use `tests/run_tests.sh`, which wraps:
+
+```bash
+pytest -vv                             # full suite
+pytest -vv --cov=src --cov-report=html # coverage run
+pytest -vv tests/comprehensive\ testing/test_auth.py
+pytest -vv -k "test_grade"
+```
+
+### Service-layer coverage
+
+The `tests/comprehensive testing/test_services_core.py` module targets low-level service logic (exam, answer, results, and student exam services) without going through FastAPI routes. This keeps business rules well covered while letting you iterate quickly. During focused development runs you can temporarily skip coverage enforcement with:
+
+```powershell
+pytest --no-cov "tests/comprehensive testing/test_services_core.py" -vv
+```
+
+Always run the full suite (with coverage) before pushing to ensure the global 80% threshold still passes.
 
 ### Integration tests (requires Postgres)
 

@@ -28,6 +28,16 @@ logger = logging.getLogger(__name__)
 GRACE_SECONDS = 30
 
 
+def _ensure_aware(dt: datetime | None) -> datetime | None:
+    """Normalize potentially naive datetimes to UTC-aware ones."""
+
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 def get_available_exams(db: Session, student_id: UUID) -> List[Exam]:
     """Return list of exams available to the given student.
 
@@ -43,9 +53,14 @@ def get_available_exams(db: Session, student_id: UUID) -> List[Exam]:
         # Filter exams base on time window; annotate status
         available = []
         for exam in exams:
-            if exam.start_time <= now <= exam.end_time:
+            start_time = _ensure_aware(exam.start_time)
+            end_time = _ensure_aware(exam.end_time)
+            if not start_time or not end_time:
+                continue
+
+            if start_time <= now <= end_time:
                 available.append(exam)
-            elif now < exam.start_time:
+            elif now < start_time:
                 available.append(exam)
             else:
                 # ended
@@ -74,13 +89,19 @@ def start_exam(db: Session, exam_id: UUID, student_id: UUID) -> StudentExam:
         if not exam.is_published:
             raise ValueError("Exam is not published")
 
-        if now < exam.start_time or now > exam.end_time:
+        start_time = _ensure_aware(exam.start_time)
+        end_time = _ensure_aware(exam.end_time)
+        if not start_time or not end_time:
+            raise ValueError("Exam timing not configured")
+
+        if now < start_time or now > end_time:
             raise ValueError("Exam is not currently available")
 
         # Check existing StudentExam
         se = db.query(StudentExam).filter(StudentExam.exam_id == exam_id, StudentExam.student_id == student_id).first()
         if se:
             if se.status == ExamStatus.IN_PROGRESS:
+                setattr(se, "_resumed", True)
                 return se
             if se.status in (ExamStatus.SUBMITTED, ExamStatus.EXPIRED):
                 raise ValueError("Exam already submitted or expired")
@@ -90,6 +111,7 @@ def start_exam(db: Session, exam_id: UUID, student_id: UUID) -> StudentExam:
         db.add(new)
         db.commit()
         db.refresh(new)
+        setattr(new, "_resumed", False)
         return new
     except SQLAlchemyError as e:
         logger.exception("DB error starting exam: %s", e)
@@ -126,7 +148,11 @@ def get_exam_session(db: Session, student_exam_id: UUID, student_id: UUID) -> Di
         # Time remaining
         time_remaining = 0
         if se.started_at and se.status == ExamStatus.IN_PROGRESS:
-            end_time = se.started_at + timedelta(minutes=exam.duration_minutes)
+            started_at = _ensure_aware(se.started_at)
+            if started_at:
+                end_time = started_at + timedelta(minutes=exam.duration_minutes)
+            else:
+                end_time = se.started_at + timedelta(minutes=exam.duration_minutes)
             time_remaining = int((end_time - datetime.now(timezone.utc)).total_seconds())
             if time_remaining < 0:
                 time_remaining = 0
@@ -239,7 +265,11 @@ def check_and_expire_exam(db: Session, student_exam: StudentExam) -> bool:
         if not exam:
             raise ValueError("Exam not found")
 
-        elapsed = (datetime.now(timezone.utc) - student_exam.started_at).total_seconds()
+        started_at = _ensure_aware(student_exam.started_at)
+        if not started_at:
+            return False
+
+        elapsed = (datetime.now(timezone.utc) - started_at).total_seconds()
         allowed = exam.duration_minutes * 60 + GRACE_SECONDS
 
         if elapsed > allowed:
