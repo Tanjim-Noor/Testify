@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { Box, Button, Container, TextField, Paper, Typography, Alert } from '@mui/material'
 import { useAuth } from '@/hooks/useAuth'
+import type { User } from '@/types/user.types'
 import { useAuthStore } from '@/store/authStore'
 import type { LoginRequest } from '@/types/auth.types'
 
@@ -15,9 +16,13 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginRequest) => {
     const res = await login(data.email, data.password)
     if (res.ok && res.user) {
-      if (res.user.role === 'admin') navigate('/admin/dashboard')
+      const user = res.user as User
+      if (user.role === 'admin') navigate('/admin/dashboard')
       else navigate('/student/dashboard')
+      return
     }
+
+    // client-side validation and toasts are handled by the hook; don't map server field errors to inline fields here
   }
 
   return (
@@ -26,8 +31,19 @@ const Login: React.FC = () => {
         <Typography variant="h5" gutterBottom>Login</Typography>
         {formState.errors?.email && <Alert severity="error">{formState.errors.email.message}</Alert>}
         <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField label="Email" {...register('email', { required: 'Email is required' })} />
-          <TextField label="Password" type="password" {...register('password', { required: 'Password is required' })} />
+          <TextField
+            label="Email"
+            error={!!formState.errors.email}
+            helperText={formState.errors.email?.message as string}
+            {...register('email', { required: 'Email is required' })}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            error={!!formState.errors.password}
+            helperText={formState.errors.password?.message as string}
+            {...register('password', { required: 'Password is required' })}
+          />
           <Button type="submit" variant="contained" disabled={isLoading}>{isLoading ? 'Signing in...' : 'Sign In'}</Button>
           <Typography variant="body2">Don't have an account? <RouterLink to="/register">Register</RouterLink></Typography>
         </Box>

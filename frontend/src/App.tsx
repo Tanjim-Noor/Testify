@@ -9,6 +9,7 @@ import ProtectedRoute from '@/components/common/ProtectedRoute'
 import { useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useAuth } from '@/hooks/useAuth'
+import NotificationProvider from '@/components/common/NotificationProvider'
 import theme from '@/theme'
 
 const AppContent = () => (
@@ -69,8 +70,10 @@ const App = () => {
     <ThemeProvider theme={theme}>
     <CssBaseline />
       <ErrorBoundary>
+        <NotificationProvider>
         <AppContent />
-      </ErrorBoundary>
+      </NotificationProvider>
+    </ErrorBoundary>
       <BrowserRouter>
         <AuthInit />
         <Routes>

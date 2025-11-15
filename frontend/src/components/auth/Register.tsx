@@ -17,10 +17,13 @@ const Register: React.FC = () => {
   const password = watch('password')
 
   const onSubmit = async (data: RegisterRequest) => {
-    const res = await apiRegister(data.email, data.password, data.role)
+    const res: any = await apiRegister(data.email, data.password, data.role)
     if (res.ok && res.user) {
       navigate('/login')
+      return
     }
+
+    // Server errors are shown using the global toast; client-side validation remains inline
   }
 
   return (
@@ -29,9 +32,26 @@ const Register: React.FC = () => {
         <Typography variant="h5" gutterBottom>Register</Typography>
         {formState.isSubmitted && formState.isValid === false && <Alert severity="error">Please fix the validation errors</Alert>}
         <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField label="Email" {...register('email', { required: 'Email is required', pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' } })} />
-          <TextField label="Password" type="password" {...register('password', { required: 'Password required', minLength: { value: 8, message: 'Min 8 characters' } })} />
-          <TextField label="Confirm Password" type="password" {...register('password2', { required: 'Confirm password', validate: (v) => v === password || 'Passwords must match' as any })} />
+          <TextField
+            label="Email"
+            error={!!formState.errors.email}
+            helperText={formState.errors.email?.message as string}
+            {...register('email', { required: 'Email is required', pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email' } })}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            error={!!formState.errors.password}
+            helperText={formState.errors.password?.message as string}
+            {...register('password', { required: 'Password required', minLength: { value: 8, message: 'Min 8 characters' } })}
+          />
+          <TextField
+            label="Confirm Password"
+            type="password"
+            error={!!formState.errors.password2}
+            helperText={formState.errors.password2?.message as string}
+            {...register('password2', { required: 'Confirm password', validate: (v) => v === password || 'Passwords must match' as any })}
+          />
           <RadioGroup row defaultValue="student" {...register('role')}>
             <FormControlLabel value="admin" control={<Radio />} label="Admin" />
             <FormControlLabel value="student" control={<Radio />} label="Student" />

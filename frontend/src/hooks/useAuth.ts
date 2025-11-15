@@ -2,6 +2,8 @@ import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login as apiLogin, register as apiRegister, getCurrentUser } from '@/api/auth'
 import { getToken } from '@/utils/storage'
+import { success as notifySuccess, error as notifyError } from '@/utils/notifier'
+import { parseAxiosError } from '@/utils/errorParser'
 import { useAuthStore } from '@/store/authStore'
 import { log, error } from '@/utils/logger'
 
@@ -14,14 +16,12 @@ export const useAuth = () => {
     try {
       const res = await apiLogin({ email, password })
       setUser(res.user, res.access_token)
+      notifySuccess('Logged in successfully')
       log('useAuth', 'Login success', res.user.email)
       return { ok: true, user: res.user }
     } catch (err) {
-      // Try to extract a user-friendly message from backend
-      const detail = (err as any)?.response?.data?.detail
-      const message = Array.isArray(detail)
-        ? detail.map((d: any) => d.msg || d.detail || JSON.stringify(d)).join(', ')
-        : detail?.msg || detail || err
+      const message = parseAxiosError(err)
+      notifyError(message)
       error('useAuth', 'Login failed', err)
       return { ok: false, error: err }
     } finally {
@@ -35,9 +35,12 @@ export const useAuth = () => {
       const res = await apiRegister({ email, password, role })
       // Optionally auto-login
       setUser(res.user, res.access_token)
+      notifySuccess('Registration successful')
       log('useAuth', 'Register success', res.user.email)
       return { ok: true, user: res.user }
     } catch (err) {
+      const message = parseAxiosError(err)
+      notifyError(message)
       error('useAuth', 'Register failed', err)
       return { ok: false, error: err }
     } finally {
