@@ -1,6 +1,14 @@
 import { ThemeProvider } from '@mui/material/styles'
 import { Box, Button, Chip, Container, CssBaseline, Paper, Stack, Typography } from '@mui/material'
 import { ErrorBoundary } from '@/components/common'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Login from '@/components/auth/Login'
+import Register from '@/components/auth/Register'
+import RoleBasedRedirect from '@/components/common/RoleBasedRedirect'
+import ProtectedRoute from '@/components/common/ProtectedRoute'
+import { useEffect } from 'react'
+import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import theme from '@/theme'
 
 const AppContent = () => (
@@ -42,13 +50,45 @@ const AppContent = () => (
   </Container>
 )
 
-const App = () => (
-  <ThemeProvider theme={theme}>
+const App = () => {
+  const initAuth = useAuthStore.getState().initAuth
+
+  // Initialize auth on app load (read token + user from storage)
+  useEffect(() => {
+    initAuth()
+  }, [initAuth])
+
+  // Run auth validation that uses React Router only after Router is mounted
+  const AuthInit: React.FC = () => {
+    const { checkAuth } = useAuth()
+    useEffect(() => { void checkAuth() }, [checkAuth])
+    return null
+  }
+
+  return (
+    <ThemeProvider theme={theme}>
     <CssBaseline />
-    <ErrorBoundary>
-      <AppContent />
-    </ErrorBoundary>
-  </ThemeProvider>
-)
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
+      <BrowserRouter>
+        <AuthInit />
+        <Routes>
+          <Route path="/" element={<RoleBasedRedirect />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          {/* Protected placeholder route */}
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute requiredRole="admin"><AppContent /></ProtectedRoute>
+          } />
+          <Route path="/student/dashboard" element={
+            <ProtectedRoute requiredRole="student"><AppContent /></ProtectedRoute>
+          } />
+          <Route path="*" element={<div>404 Not Found</div>} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
+  )
+}
 
 export default App

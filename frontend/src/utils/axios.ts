@@ -1,5 +1,6 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
-import { debug, error } from './logger'
+import { debug, error, log } from './logger'
+import { clearAuth, getToken } from './storage'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 const DEFAULT_TIMEOUT = 10_000
@@ -14,7 +15,7 @@ const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
+  const token = getToken()
   config.headers = config.headers ?? {}
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -34,6 +35,20 @@ apiClient.interceptors.response.use(
   },
   (err) => {
     error('Axios', 'Response error', err)
+    const status = err?.response?.status
+    // Global auth handling
+    if (status === 401) {
+      log('Axios', '401 Unauthorized — clearing auth and redirecting')
+      try {
+        clearAuth()
+        window.location.href = '/login'
+      } catch (e) {
+        error('Axios', 'Failed to clear auth on 401', e)
+      }
+    }
+    if (status === 403) {
+      log('Axios', '403 Forbidden — access denied')
+    }
     return Promise.reject(err)
   },
 )
