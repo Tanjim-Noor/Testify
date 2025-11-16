@@ -457,3 +457,42 @@ See `project phases/` directory for detailed phase information:
 - Phase 3: Database Models
 - Phase 4: Authentication
 - Phase 5+: Features
+
+## Database Seeding (Development Only)
+
+The backend provides a lightweight seeding system to populate the dev database with sample users, questions, exams, and student sessions.
+
+Usage:
+
+```powershell
+cd backend
+# Seed everything
+python -u scripts/seed.py all
+
+# Seed individual parts
+python -u scripts/seed.py users
+python -u scripts/seed.py questions
+python -u scripts/seed.py exams
+python -u scripts/seed.py exam-questions
+python -u scripts/seed.py student-exams
+python -u scripts/seed.py student-answers
+
+# Clean seeded data
+python -u scripts/seed.py clean --force
+
+# Verify counts
+python -u scripts/verify_seeds.py
+```
+
+Notes:
+- The seeders will refuse to run unless `DEBUG` is true (in `src/config/settings.py`) unless `--force` is provided.
+ - The seeders will refuse to run unless `DEBUG` is true (in `src/config/settings.py`) unless `--force` is provided. You can also run without --force by answering the interactive prompt that appears when `DEBUG` is false.
+ - To enable debug automatically, set `DEBUG=true` in `backend/.env` (Powershell):
+
+```powershell
+# From repo root
+cd backend
+Set-Content -Path .env -Value (Get-Content .env.example -Raw) -Force
+(Get-Content .env) -replace 'DEBUG=False','DEBUG=True' | Set-Content .env
+```
+- Tracking of created records is saved to `backend/seeds/.seed_tracking.json`.
