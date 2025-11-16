@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom'
 import ROUTES from '@/utils/routes'
 
 const NotFound: React.FC = () => {
-  const { user, isAuthenticated } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   const goTo = user?.role === 'admin' ? ROUTES.ADMIN.DASHBOARD : ROUTES.STUDENT.DASHBOARD
 

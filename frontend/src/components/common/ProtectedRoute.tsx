@@ -9,7 +9,9 @@ interface Props {
 }
 
 const ProtectedRoute: React.FC<Props> = ({ children, requiredRole, redirectTo = '/login' }) => {
-  const { user, isAuthenticated, isLoading } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isLoading = useAuthStore((s) => s.isLoading)
 
   if (isLoading) return null // optionally a loading spinner
 

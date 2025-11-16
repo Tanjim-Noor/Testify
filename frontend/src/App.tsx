@@ -14,6 +14,7 @@ import StudentDashboard from '@/components/student/StudentDashboard'
 import QuestionBank from '@/components/admin/QuestionBank'
 import ExamManagement from '@/components/admin/ExamManagement'
 import AdminResults from '@/components/admin/AdminResults'
+import ExamBuilderPlaceholder from '@/components/admin/ExamBuilder/ExamBuilderPlaceholder'
 import ExamList from '@/components/student/ExamList'
 import StudentResults from '@/components/student/StudentResults'
 import LoadingOverlay from '@/components/common/Layout/Loading'
@@ -21,7 +22,7 @@ import RouteLoader from '@/components/common/Layout/RouteLoader'
 import ProtectedRoute from '@/components/common/ProtectedRoute'
 import { useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
-import { useAuth } from '@/hooks/useAuth'
+// useAuth hook is used by components where needed; App uses the store directly
 import NotificationProvider from '@/components/common/NotificationProvider'
 import theme from '@/theme'
 
@@ -64,21 +65,19 @@ const AppContent = () => (
   </Container>
 )
 
-const App = () => {
-  const initAuth = useAuthStore((s) => s.initAuth)
-  const isLoading = useAuthStore((s) => s.isLoading)
-
-  // Initialize auth on app load (read token + user from storage)
+// Auth initialization component - defined outside App to prevent recreation
+const AuthInit: React.FC = () => {
   useEffect(() => {
-    initAuth()
-  }, [initAuth])
+    // Initialize auth from storage first
+    useAuthStore.getState().initAuth()
+    // Then validate the token with the server
+    void useAuthStore.getState().checkAuth()
+  }, [])
+  return null
+}
 
-  // Run auth validation that uses React Router only after Router is mounted
-  const AuthInit: React.FC = () => {
-    const { checkAuth } = useAuth()
-    useEffect(() => { void checkAuth() }, [checkAuth])
-    return null
-  }
+const App = () => {
+  const isLoading = useAuthStore((s) => s.isLoading)
 
   return (
     <ThemeProvider theme={theme}>
@@ -102,6 +101,7 @@ const App = () => {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="questions" element={<QuestionBank />} />
             <Route path="exams" element={<ExamManagement />} />
+            <Route path="exams/:examId/builder" element={<ExamBuilderPlaceholder />} />
             <Route path="results" element={<AdminResults />} />
           </Route>
           {/* Student routes (protected with StudentLayout) */}
