@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "generate:template": "node ../scripts/generate_questions_template.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -18,6 +19,7 @@
     "@mui/x-date-pickers": "^8.18.0",
     "axios": "^1.13.2",
     "dayjs": "^1.11.19",
+    "exceljs": "^4.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-dropzone": "^14.3.8",

@@ -1,4 +1,6 @@
 import { ThemeProvider } from '@mui/material/styles'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { Box, Button, Chip, Container, CssBaseline, Paper, Stack, Typography } from '@mui/material'
 import { ErrorBoundary } from '@/components/common'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
@@ -81,11 +83,13 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
     <CssBaseline />
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
       <ErrorBoundary>
         <NotificationProvider>
         <AppContent />
       </NotificationProvider>
     </ErrorBoundary>
+      </LocalizationProvider>
       <BrowserRouter>
         <AuthInit />
         <Routes>
