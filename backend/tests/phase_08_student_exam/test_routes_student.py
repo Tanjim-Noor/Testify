@@ -51,12 +51,48 @@ def student_auth(monkeypatch):
 
 def test_list_exams(monkeypatch):
     fake_exam = make_fake_exam()
+    
+    # Mock the database query for StudentExam
+    from src.models.student_exam import StudentExam
+    mock_student_exams = []
+    
+    def mock_db_query(*args, **kwargs):
+        class MockQuery:
+            def filter(self, *args, **kwargs):
+                return self
+            def all(self):
+                return mock_student_exams
+        return MockQuery()
+    
     monkeypatch.setattr("src.services.student_exam_service.get_available_exams", lambda db, sid: [fake_exam])
+    
+    # Mock the db.query to return empty student exams
+    import src.routes.student as student_module
+    original_get_db = app.dependency_overrides.get(student_module.get_db)
+    
+    def mock_get_db():
+        class MockDB:
+            def query(self, *args):
+                return mock_db_query()
+        return MockDB()
+    
+    from src.routes.student import get_db
+    app.dependency_overrides[get_db] = mock_get_db
+    
     response = client.get("/api/student/exams")
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
     assert data[0]["title"] == fake_exam.title
+    # Verify new fields are present
+    assert "student_exam_id" in data[0]
+    assert "submission_status" in data[0]
+    
+    # Restore original override
+    if original_get_db:
+        app.dependency_overrides[get_db] = original_get_db
+    else:
+        app.dependency_overrides.pop(get_db, None)
 
 
 def test_start_exam(monkeypatch):

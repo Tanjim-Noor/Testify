@@ -15,7 +15,8 @@ import QuestionBank from '@/components/admin/QuestionBank'
 import ExamManagement from '@/components/admin/ExamManagement'
 import AdminResults from '@/components/admin/AdminResults'
 import { ExamBuilderPage } from '@/components/admin/ExamBuilder'
-import ExamList from '@/components/student/ExamList'
+import { ExamTakingPage } from '@/components/student/ExamTaking'
+import ExamListPage from '@/components/student/ExamList/ExamListPage'
 import StudentResults from '@/components/student/StudentResults'
 import LoadingOverlay from '@/components/common/Layout/Loading'
 import RouteLoader from '@/components/common/Layout/RouteLoader'
@@ -65,9 +66,11 @@ const App = () => {
                 <Route path="/student" element={<ProtectedRoute requiredRole="student"><StudentLayout /></ProtectedRoute>}>
                   <Route index element={<StudentDashboard />} />
                   <Route path="dashboard" element={<StudentDashboard />} />
-                  <Route path="exams" element={<ExamList />} />
+                  <Route path="exams" element={<ExamListPage />} />
                   <Route path="results" element={<StudentResults />} />
                 </Route>
+                {/* Exam taking page - standalone (outside layout for custom header) */}
+                <Route path="/student/exams/:studentExamId/take" element={<ProtectedRoute requiredRole="student"><ExamTakingPage /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <RouteLoader />

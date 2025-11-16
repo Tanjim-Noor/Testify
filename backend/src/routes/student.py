@@ -34,9 +34,18 @@ def _ensure_aware(dt: datetime | None) -> datetime | None:
 @router.get("/exams", response_model=List[AvailableExamResponse])
 def list_exams(student=Depends(get_current_student), db: Session = Depends(get_db)):
     """List exams available to the authenticated student."""
+    from src.models.student_exam import StudentExam
+    
     exams = student_exam_service.get_available_exams(db, student.id)
     now = datetime.now(timezone.utc)
     result = []
+    
+    # Get all student exam sessions for this student in one query
+    student_exams_map = {}
+    student_exams = db.query(StudentExam).filter(StudentExam.student_id == student.id).all()
+    for se in student_exams:
+        student_exams_map[se.exam_id] = se
+    
     for e in exams:
         start_time = _ensure_aware(e.start_time)
         end_time = _ensure_aware(e.end_time)
@@ -49,6 +58,21 @@ def list_exams(student=Depends(get_current_student), db: Session = Depends(get_d
             status = "available"
         else:
             status = "ended"
+        
+        # Check if student has started this exam
+        student_exam = student_exams_map.get(e.id)
+        student_exam_id = None
+        submission_status = None
+        
+        if student_exam:
+            student_exam_id = student_exam.id
+            # Determine submission status based on StudentExam record
+            if student_exam.submitted_at is not None:
+                submission_status = "submitted"
+            elif student_exam.started_at is not None:
+                submission_status = "in_progress"
+            else:
+                submission_status = "not_started"
 
         result.append(AvailableExamResponse(
             exam_id=e.id,
@@ -58,6 +82,8 @@ def list_exams(student=Depends(get_current_student), db: Session = Depends(get_d
             end_time=e.end_time,
             duration_minutes=e.duration_minutes,
             status=status,
+            student_exam_id=student_exam_id,
+            submission_status=submission_status,
         ))
 
     return result

@@ -18,6 +18,7 @@ class AvailableExamResponse(BaseModel):
     """Model for listing exams visible to a student.
 
     status: one of `available`, `upcoming`, `ended`
+    submission_status: one of `not_started`, `in_progress`, `submitted` (optional)
     """
 
     exam_id: UUID = Field(..., description="Exam id")
@@ -27,6 +28,8 @@ class AvailableExamResponse(BaseModel):
     end_time: datetime = Field(..., description="Exam end time (UTC)")
     duration_minutes: int = Field(..., description="Duration in minutes")
     status: str = Field(..., description="Availability status: available, upcoming, or ended")
+    student_exam_id: Optional[UUID] = Field(None, description="Student exam session ID if started")
+    submission_status: Optional[str] = Field(None, description="Submission status: not_started, in_progress, or submitted")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
