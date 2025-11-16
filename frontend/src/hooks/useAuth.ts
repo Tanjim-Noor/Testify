@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login as apiLogin, register as apiRegister, getCurrentUser } from '@/api/auth'
-import { getToken } from '@/utils/storage'
+import { login as apiLogin, register as apiRegister } from '@/api/auth'
 import { success as notifySuccess, error as notifyError } from '@/utils/notifier'
 import { parseAxiosError } from '@/utils/errorParser'
 import { useAuthStore } from '@/store/authStore'
@@ -10,6 +9,8 @@ import { log, error } from '@/utils/logger'
 export const useAuth = () => {
   const navigate = useNavigate()
   const { setUser, clearAuth, setLoading } = useAuthStore()
+  // Use store checkAuth for validation — keep auth API centralized in store.
+  const checkAuth = useAuthStore((s) => s.checkAuth)
 
   const login = useCallback(async (email: string, password: string) => {
     setLoading(true)
@@ -54,33 +55,7 @@ export const useAuth = () => {
     navigate('/login')
   }, [clearAuth, navigate])
 
-  const checkAuth = useCallback(async () => {
-    setLoading(true)
-    try {
-      const token = getToken()
-      if (!token) {
-        log('useAuth', 'checkAuth: no token present')
-        setLoading(false)
-        return { ok: false }
-      }
-      const user = await getCurrentUser()
-      // API returns user, but token will be read from localStorage by store init
-      if (user) {
-        // If the store isn't initialized we rely on initAuth elsewhere
-        log('useAuth', 'checkAuth: token valid')
-        return { ok: true, user }
-      }
-      log('useAuth', 'checkAuth: not authenticated')
-      clearAuth()
-      return { ok: false }
-    } catch (err) {
-      error('useAuth', 'checkAuth failed', err)
-      clearAuth()
-      return { ok: false, error: err }
-    } finally {
-      setLoading(false)
-    }
-  }, [clearAuth, setLoading])
+  // No local checkAuth — use store implementation for stability
 
   return { login, register, logout, checkAuth }
 }

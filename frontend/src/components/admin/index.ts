@@ -1,2 +1,4 @@
 // Export admin-specific components when ready.
-export {};
+export { default as QuestionBank } from './QuestionBank'
+export { default as ExamManagement } from './ExamManagement'
+export { default as AdminResults } from './AdminResults'

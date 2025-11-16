@@ -26,8 +26,21 @@ export interface ExamFormData {
 }
 
 /**
+ * Question assignment in exam context
+ */
+export interface ExamQuestion {
+  id: string
+  title: string
+  type: string
+  complexity: string
+  max_score: number
+  order_index: number
+  tags?: string[]
+}
+
+/**
  * Exam detail including questions array returned by GET /api/admin/exams/{id}
  */
 export interface ExamDetail extends Exam {
-  questions: any[]
+  questions: ExamQuestion[]
 }

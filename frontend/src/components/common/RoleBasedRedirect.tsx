@@ -4,7 +4,9 @@ import { useAuthStore } from '@/store/authStore'
 import ROUTES from '@/utils/routes'
 
 const RoleBasedRedirect: React.FC = () => {
-  const { user, isAuthenticated, isLoading } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isLoading = useAuthStore((s) => s.isLoading)
 
   if (isLoading) return null
 
