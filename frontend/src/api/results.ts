@@ -44,14 +44,14 @@ export async function getStudentResultByExamId(examId: string): Promise<StudentR
 
 /**
  * Get all results for an exam (admin only)
- * Endpoint: GET /api/admin/results/exam/{exam_id}
+ * Endpoint: GET /api/admin/results/exams/{exam_id}
  * @param examId - The exam ID
  * @returns Exam summary and all student results
  */
 export async function getExamResults(examId: string): Promise<AdminExamResults> {
   try {
     log('ResultsAPI', 'Fetching exam results (admin)', examId)
-    const res = await apiClient.get(`/api/admin/results/exam/${examId}`)
+    const res = await apiClient.get(`/api/admin/results/exams/${examId}`)
     return res.data as AdminExamResults
   } catch (err) {
     error('ResultsAPI', 'getExamResults failed', err)
@@ -61,14 +61,14 @@ export async function getExamResults(examId: string): Promise<AdminExamResults> 
 
 /**
  * Get detailed student exam for review (admin only)
- * Endpoint: GET /api/admin/results/student-exam/{student_exam_id}
+ * Endpoint: GET /api/admin/results/student-exams/{student_exam_id}
  * @param studentExamId - The student exam session ID
  * @returns Detailed student result for admin review
  */
 export async function getStudentExamDetail(studentExamId: string): Promise<StudentResult> {
   try {
     log('ResultsAPI', 'Fetching student exam detail (admin)', studentExamId)
-    const res = await apiClient.get(`/api/admin/results/student-exam/${studentExamId}`)
+    const res = await apiClient.get(`/api/admin/results/student-exams/${studentExamId}`)
     return res.data as StudentResult
   } catch (err) {
     error('ResultsAPI', 'getStudentExamDetail failed', err)

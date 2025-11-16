@@ -13,8 +13,8 @@ import AdminDashboard from '@/components/admin/AdminDashboard'
 import StudentDashboard from '@/components/student/StudentDashboard'
 import QuestionBank from '@/components/admin/QuestionBank'
 import ExamManagement from '@/components/admin/ExamManagement'
-import AdminResults from '@/components/admin/AdminResults'
 import { ExamBuilderPage } from '@/components/admin/ExamBuilder'
+import { ResultsDashboardPage } from '@/components/admin/ResultsDashboard'
 import { ExamTakingPage } from '@/components/student/ExamTaking'
 import ExamListPage from '@/components/student/ExamList/ExamListPage'
 import { ResultsPage, ResultsListPage } from '@/components/student/Results'
@@ -60,7 +60,8 @@ const App = () => {
                   <Route path="questions" element={<QuestionBank />} />
                   <Route path="exams" element={<ExamManagement />} />
                   <Route path="exams/:examId/builder" element={<ExamBuilderPage />} />
-                  <Route path="results" element={<AdminResults />} />
+                  <Route path="exams/:examId/results" element={<ResultsDashboardPage />} />
+                  <Route path="results" element={<ResultsDashboardPage />} />
                 </Route>
                 {/* Student routes (protected with StudentLayout) */}
                 <Route path="/student" element={<ProtectedRoute requiredRole="student"><StudentLayout /></ProtectedRoute>}>

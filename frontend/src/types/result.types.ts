@@ -9,6 +9,7 @@
  */
 export interface QuestionResult {
   question_id: string
+  answer_id?: string | null // UUID of the student answer; null if not answered
   title: string
   description?: string
   type: 'single_choice' | 'multi_choice' | 'text' | 'image_upload'
@@ -53,10 +54,10 @@ export interface ExamResultsSummary {
   exam_title: string
   total_students: number
   submitted_count: number
-  average_score: number
-  highest_score: number
-  lowest_score: number
-  pass_rate?: number // percentage, if passing threshold is defined
+  average_score: number | null // null if no submissions
+  highest_score: number | null // null if no submissions
+  lowest_score: number | null // null if no submissions
+  pass_rate?: number | null // percentage, if passing threshold is defined
 }
 
 /**

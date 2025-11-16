@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import SettingsIcon from '@mui/icons-material/Settings'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 import { getExams, deleteExam, publishExam } from '@/api/exams'
 import type { Exam } from '@/types/exam.types'
 import EmptyState from '@/components/common/EmptyState'
@@ -122,6 +123,7 @@ const ExamList: React.FC = () => {
                     </TableCell>
                     <TableCell align="right">
                       <Tooltip title="Manage Questions"><IconButton onClick={() => navigate(`/admin/exams/${ex.id}/builder`)} aria-label="manage"><SettingsIcon /></IconButton></Tooltip>
+                      <Tooltip title="View Results"><IconButton onClick={() => navigate(`/admin/exams/${ex.id}/results`)} aria-label="results"><AssessmentIcon /></IconButton></Tooltip>
                       <Tooltip title="Edit"><IconButton onClick={() => { setEditExam(ex); setFormOpen(true) }} aria-label="edit"><EditIcon /></IconButton></Tooltip>
                       <Tooltip title="Delete"><IconButton onClick={() => setDeleteTarget(ex)} aria-label="delete"><DeleteIcon color="error" /></IconButton></Tooltip>
                       <Tooltip title={ex.is_published ? 'Unpublish' : 'Publish'}>
