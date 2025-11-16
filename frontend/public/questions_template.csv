@@ -1,0 +1,4 @@
+title,description,complexity,type,options,correct_answers,max_score,tags
+"Explain the Pythagorean theorem","Open-ended explanation","Class 10","text","","",5,"geometry"
+"Which formula represents the Pythagorean theorem?","Select the correct expression","Class 10","single_choice","[""a^2 + b^2 = c^2"",""a^2 = b^2 + c^2"",""a + b = c""]","[""a^2 + b^2 = c^2""]",1,"geometry,power"
+"Select all prime numbers","Choose numbers that are prime","Class 8","multi_choice","[""2"",""3"",""4"",""5""]","[""2"",""3"",""5""]",2,"math,number"

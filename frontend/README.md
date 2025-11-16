@@ -106,6 +106,23 @@ Copy `.env.example` into `.env` and adjust the values for your local or deployme
 | `npm run preview` | Serves the production build locally for smoke testing. |
 | `npm run lint` | Runs ESLint over the `src` directory. |
 
+### Generate Excel template
+
+If you prefer a real Excel `.xlsx` template file, you can generate one with the `exceljs` library. This script creates `public/questions_template.xlsx` using the same columns as the server expects.
+
+1. From the frontend folder, install `exceljs` (do not pin versions; consult the context7 MCP server if needed):
+  ```powershell
+  cd frontend
+  npm install exceljs
+  ```
+
+2. Run the generator script (the repo includes `scripts/generate_questions_template.js`):
+  ```powershell
+  npm run generate:template
+  ```
+
+After running the script, check `frontend/public/questions_template.xlsx` — it will contain header columns and a couple of example rows.
+
 ## Folder Structure
 
 ```
