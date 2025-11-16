@@ -72,11 +72,11 @@ export async function publishExam(id: string, isPublished: boolean): Promise<Exa
   }
 }
 
-export async function assignQuestions(examId: string, assignments: Array<{ question_id: string; order_index: number }>): Promise<Exam> {
+export async function assignQuestions(examId: string, assignments: Array<{ question_id: string; order_index: number }>): Promise<ExamDetail> {
   try {
     log('ExamsAPI', 'Assign questions', examId)
     const res = await apiClient.post(`/api/admin/exams/${examId}/questions`, assignments)
-    return res.data as Exam
+    return res.data as ExamDetail
   } catch (err) {
     error('ExamsAPI', 'assignQuestions failed', err)
     throw err
@@ -94,4 +94,4 @@ export async function reorderQuestions(examId: string, questionIds: string[]): P
   }
 }
 
-export default { getExams, getExamById, createExam, updateExam, deleteExam, publishExam }
+export default { getExams, getExamById, createExam, updateExam, deleteExam, publishExam, assignQuestions, reorderQuestions }

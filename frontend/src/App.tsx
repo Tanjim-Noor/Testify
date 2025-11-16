@@ -14,7 +14,7 @@ import StudentDashboard from '@/components/student/StudentDashboard'
 import QuestionBank from '@/components/admin/QuestionBank'
 import ExamManagement from '@/components/admin/ExamManagement'
 import AdminResults from '@/components/admin/AdminResults'
-import ExamBuilderPlaceholder from '@/components/admin/ExamBuilder/ExamBuilderPlaceholder'
+import { ExamBuilderPage } from '@/components/admin/ExamBuilder'
 import ExamList from '@/components/student/ExamList'
 import StudentResults from '@/components/student/StudentResults'
 import LoadingOverlay from '@/components/common/Layout/Loading'
@@ -58,7 +58,7 @@ const App = () => {
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="questions" element={<QuestionBank />} />
                   <Route path="exams" element={<ExamManagement />} />
-                  <Route path="exams/:examId/builder" element={<ExamBuilderPlaceholder />} />
+                  <Route path="exams/:examId/builder" element={<ExamBuilderPage />} />
                   <Route path="results" element={<AdminResults />} />
                 </Route>
                 {/* Student routes (protected with StudentLayout) */}
