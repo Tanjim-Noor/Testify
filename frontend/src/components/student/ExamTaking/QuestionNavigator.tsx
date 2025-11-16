@@ -11,10 +11,10 @@ import {
   IconButton,
 } from '@mui/material'
 import { CheckCircle, RadioButtonUnchecked, Close } from '@mui/icons-material'
-import type { ExamQuestion } from '@/types/studentExam.types'
+import type { StudentExamQuestion } from '@/types/studentExam.types'
 
 interface QuestionNavigatorProps {
-  questions: ExamQuestion[]
+  questions: StudentExamQuestion[]
   currentIndex: number
   answeredQuestions: Set<string>
   onNavigate: (index: number) => void

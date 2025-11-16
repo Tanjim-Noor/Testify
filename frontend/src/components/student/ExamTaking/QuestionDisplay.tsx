@@ -1,9 +1,9 @@
 import React from 'react'
 import { Box, Typography, Chip } from '@mui/material'
-import type { ExamQuestion } from '@/types/studentExam.types'
+import type { StudentExamQuestion } from '@/types/studentExam.types'
 
 interface QuestionDisplayProps {
-  question: ExamQuestion
+  question: StudentExamQuestion
   questionNumber: number
 }
 

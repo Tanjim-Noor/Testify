@@ -1,12 +1,12 @@
 import React from 'react'
-import type { ExamQuestion, AnswerValue } from '@/types/studentExam.types'
+import type { StudentExamQuestion, AnswerValue } from '@/types/studentExam.types'
 import SingleChoiceAnswer from './AnswerComponents/SingleChoiceAnswer'
 import MultiChoiceAnswer from './AnswerComponents/MultiChoiceAnswer'
 import TextAnswer from './AnswerComponents/TextAnswer'
 import ImageUploadAnswer from './AnswerComponents/ImageUploadAnswer'
 
 interface AnswerRendererProps {
-  question: ExamQuestion
+  question: StudentExamQuestion
   currentAnswer: AnswerValue
   onAnswerChange: (value: AnswerValue) => void
 }

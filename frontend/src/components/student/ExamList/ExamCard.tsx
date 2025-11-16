@@ -8,8 +8,9 @@ import {
   Box,
   Stack,
 } from '@mui/material'
-import { Schedule, CalendarToday, PlayArrow, Visibility } from '@mui/icons-material'
+import { Schedule, CalendarToday, PlayArrow, Visibility, Assessment } from '@mui/icons-material'
 import { format, parseISO } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
 import type { AvailableExam } from '@/types/studentExam.types'
 import StatusBadge from './StatusBadge'
 
@@ -23,11 +24,18 @@ interface ExamCardProps {
  * Shows exam details, status, and action buttons
  */
 const ExamCard: React.FC<ExamCardProps> = ({ exam, onStartExam }) => {
-  const { exam_id, title, description, start_time, end_time, duration_minutes, status, submission_status } = exam
+  const { exam_id, title, description, start_time, end_time, duration_minutes, status, submission_status, student_exam_id } = exam
+  const navigate = useNavigate()
 
   const handleAction = () => {
     if (status === 'available' && submission_status !== 'submitted') {
       onStartExam(exam_id)
+    }
+  }
+
+  const handleViewResults = () => {
+    if (student_exam_id) {
+      navigate(`/student/exams/${student_exam_id}/results`)
     }
   }
 
@@ -37,17 +45,11 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, onStartExam }) => {
       return (
         <Button 
           variant="contained" 
-          disabled 
-          sx={{
-            bgcolor: 'success.light',
-            color: 'success.dark',
-            '&.Mui-disabled': {
-              bgcolor: 'success.light',
-              color: 'success.dark',
-            },
-          }}
+          color="success"
+          startIcon={<Assessment />}
+          onClick={handleViewResults}
         >
-          Submitted
+          View Results
         </Button>
       )
     }

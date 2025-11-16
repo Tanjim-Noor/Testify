@@ -1,5 +1,5 @@
 import { log, error } from './logger'
-import { User } from '@/types/user.types'
+import type { User } from '@/types/user.types'
 
 const ACCESS_TOKEN_KEY = 'accessToken'
 const USER_KEY = 'currentUser'

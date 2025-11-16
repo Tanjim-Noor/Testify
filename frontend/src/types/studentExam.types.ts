@@ -61,7 +61,7 @@ export interface AvailableExamWithSession extends AvailableExam {
  * Question in exam session (without correct answers)
  * Used during exam taking
  */
-export interface ExamQuestion {
+export interface StudentExamQuestion {
   id: string
   title: string
   description?: string
@@ -83,10 +83,10 @@ export interface StudentAnswer {
 }
 
 /**
- * Exam details for taking
+ * Exam details for taking (student view)
  * Returned from GET /api/student/exams/{student_exam_id}
  */
-export interface ExamDetail {
+export interface StudentExamDetail {
   id: string
   title: string
   description?: string
@@ -101,7 +101,7 @@ export interface ExamDetail {
  */
 export interface ExamSession {
   student_exam: StudentExamSession
-  exam_details: ExamDetail
-  questions: ExamQuestion[]
+  exam_details: StudentExamDetail
+  questions: StudentExamQuestion[]
   answers: Record<string, AnswerValue> // Backend returns object/dictionary, not array
 }
