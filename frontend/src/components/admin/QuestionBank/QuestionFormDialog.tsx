@@ -17,7 +17,7 @@ interface Props {
 
 const QuestionFormDialog: React.FC<Props> = ({ open, onClose, question, onSuccess }) => {
   const isEdit = Boolean(question)
-  const { control, handleSubmit, watch, formState, reset, setValue } = useForm<QuestionFormData>({
+  const { control, handleSubmit, watch, formState, reset } = useForm<QuestionFormData>({
     defaultValues: question ? { ...question } as any : { title: '', description: '', complexity: '', type: 'single_choice', options: [], correct_answers: [], max_score: 1, tags: [] },
   })
 

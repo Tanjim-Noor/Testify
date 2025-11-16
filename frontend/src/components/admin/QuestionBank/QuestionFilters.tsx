@@ -15,7 +15,7 @@ interface Props {
   onClear: () => void
 }
 
-const QuestionFilters: React.FC<Props> = ({ search, onSearch, type, onTypeChange, complexity, onComplexityChange, tags = [], onTagsChange, onClear }) => {
+const QuestionFilters: React.FC<Props> = ({ search, onSearch, type, onTypeChange, complexity, onComplexityChange, tags = [], onClear }) => {
   const debounced = useDebounce(search, 500)
 
   React.useEffect(() => {

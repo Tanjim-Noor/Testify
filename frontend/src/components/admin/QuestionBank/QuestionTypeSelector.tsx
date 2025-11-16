@@ -1,6 +1,5 @@
 import React from 'react'
 import { RadioGroup, FormControlLabel, Radio, Box, Typography } from '@mui/material'
-import TypeSpecimenIcon from '@mui/icons-material/TypeSpecimen'
 
 interface Props {
   value: string
