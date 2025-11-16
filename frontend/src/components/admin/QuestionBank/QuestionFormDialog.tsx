@@ -17,8 +17,9 @@ interface Props {
 
 const QuestionFormDialog: React.FC<Props> = ({ open, onClose, question, onSuccess }) => {
   const isEdit = Boolean(question)
+  const defaultValues: QuestionFormData = { title: '', description: '', complexity: '', type: 'single_choice', options: [], correct_answers: [], max_score: 1, tags: [] }
   const { control, handleSubmit, watch, formState, reset } = useForm<QuestionFormData>({
-    defaultValues: question ? { ...question } as any : { title: '', description: '', complexity: '', type: 'single_choice', options: [], correct_answers: [], max_score: 1, tags: [] },
+    defaultValues,
   })
 
   React.useEffect(() => {
@@ -32,10 +33,10 @@ const QuestionFormDialog: React.FC<Props> = ({ open, onClose, question, onSucces
         }
         reset(initial)
       } else {
-        reset(undefined)
+        reset(defaultValues)
       }
     }
-  }, [open, question])
+  }, [open, question, reset])
 
   const onSubmit = async (data: QuestionFormData) => {
     try {
