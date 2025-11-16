@@ -50,6 +50,7 @@ const ExamTakingPage: React.FC = () => {
     setCurrentQuestionIndex,
     setAnswer,
     submitExam,
+    saveAnswerToServer,
     clearSession,
     loadFromLocalStorage,
   } = useExamStore()
@@ -111,6 +112,17 @@ const ExamTakingPage: React.FC = () => {
     if (!studentExamId) return
 
     try {
+      // Save all pending answers before auto-submitting
+      const pendingAnswers = Object.entries(answers)
+      if (pendingAnswers.length > 0) {
+        log('ExamTakingPage', 'Saving all pending answers before auto-submit', pendingAnswers.length)
+        await Promise.all(
+          pendingAnswers.map(([questionId, value]) =>
+            saveAnswerToServer(studentExamId, questionId, value)
+          )
+        )
+      }
+
       notify('Time expired. Exam auto-submitted.', 'warning')
       await submitExam(studentExamId)
       navigate(`/student/exams/${studentExamId}/results`)
@@ -118,7 +130,7 @@ const ExamTakingPage: React.FC = () => {
       logError('ExamTakingPage', 'Auto-submit failed', err)
       notify('Failed to submit exam', 'error')
     }
-  }, [studentExamId, submitExam, navigate])
+  }, [studentExamId, submitExam, navigate, answers, saveAnswerToServer])
 
   // Handle answer change
   const handleAnswerChange = useCallback(
@@ -157,6 +169,19 @@ const ExamTakingPage: React.FC = () => {
     if (!studentExamId) return
 
     try {
+      // Save all pending answers before submitting
+      const pendingAnswers = Object.entries(answers)
+      if (pendingAnswers.length > 0) {
+        log('ExamTakingPage', 'Saving all pending answers before submit', pendingAnswers.length)
+        // Save all answers in parallel
+        await Promise.all(
+          pendingAnswers.map(([questionId, value]) =>
+            saveAnswerToServer(studentExamId, questionId, value)
+          )
+        )
+      }
+
+      // Now submit the exam
       await submitExam(studentExamId)
       notify('Exam submitted successfully', 'success')
       clearSession()

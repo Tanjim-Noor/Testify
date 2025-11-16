@@ -17,13 +17,14 @@ def grade_single_choice(answer_value: dict, correct_answers: List[str], max_scor
     """Grade a single choice question.
 
     Returns (is_correct, score). Comparison is case-insensitive. Empty answers or missing answer -> incorrect.
+    Extracts option letter from answers like "B: Mars" to compare with correct answer "B".
     """
     try:
         if not correct_answers or len(correct_answers) == 0:
             logger.warning("Single choice question has no correct answers configured")
             return False, 0.0
 
-        # student answer format: {"answer": "A"}
+        # student answer format: {"answer": "A"} or {"answer": "A: Option Text"}
         student_answer = None
         if isinstance(answer_value, dict):
             student_answer = answer_value.get("answer")
@@ -31,9 +32,19 @@ def grade_single_choice(answer_value: dict, correct_answers: List[str], max_scor
         if not student_answer or not isinstance(student_answer, str):
             return False, 0.0
 
-        expected = str(correct_answers[0]).strip().lower()
-        actual = str(student_answer).strip().lower()
-        is_correct = actual == expected
+        # Extract option letter (handle formats like "B: Mars" or just "B")
+        student_option = str(student_answer).strip()
+        if ":" in student_option:
+            # Extract just the letter before the colon
+            student_option = student_option.split(":")[0].strip()
+
+        # Extract option letter from correct answer if needed
+        expected_option = str(correct_answers[0]).strip()
+        if ":" in expected_option:
+            expected_option = expected_option.split(":")[0].strip()
+
+        # Case-insensitive comparison of option letters
+        is_correct = student_option.lower() == expected_option.lower()
         score = float(max_score) if is_correct else 0.0
         return is_correct, score
     except Exception as e:
@@ -45,13 +56,14 @@ def grade_multi_choice(answer_value: dict, correct_answers: List[str], max_score
     """Grade a multi choice question.
 
     Uses strict grading: must exactly match the set of correct answers. Any incorrect selection -> 0.
+    Extracts option letters from answers like "B: Mars" to compare with correct answers like "B".
     """
     try:
         if not correct_answers:
             logger.warning("Multi choice question has no correct answers configured")
             return False, 0.0
 
-        # student answers format: {"answers": ["A","B"]}
+        # student answers format: {"answers": ["A","B"]} or {"answers": ["A: Option1", "B: Option2"]}
         student_answers = []
         if isinstance(answer_value, dict):
             student_answers = answer_value.get("answers") or []
@@ -59,9 +71,28 @@ def grade_multi_choice(answer_value: dict, correct_answers: List[str], max_score
         if not student_answers or not isinstance(student_answers, list):
             return False, 0.0
 
+        # Extract option letters from student answers (handle "B: Mars" format)
+        student_options = []
+        for ans in student_answers:
+            ans_str = str(ans).strip()
+            if ":" in ans_str:
+                # Extract just the letter before the colon
+                student_options.append(ans_str.split(":")[0].strip())
+            else:
+                student_options.append(ans_str)
+
+        # Extract option letters from correct answers if needed
+        expected_options = []
+        for ans in correct_answers:
+            ans_str = str(ans).strip()
+            if ":" in ans_str:
+                expected_options.append(ans_str.split(":")[0].strip())
+            else:
+                expected_options.append(ans_str)
+
         # Case-insensitive set comparison
-        expected_set = {str(s).strip().lower() for s in correct_answers}
-        actual_set = {str(s).strip().lower() for s in student_answers}
+        expected_set = {opt.lower() for opt in expected_options}
+        actual_set = {opt.lower() for opt in student_options}
 
         is_correct = expected_set == actual_set
         score = float(max_score) if is_correct else 0.0

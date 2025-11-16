@@ -22,6 +22,7 @@ class QuestionResultResponse(BaseModel):
     """
 
     question_id: UUID = Field(..., description="UUID of the question")
+    answer_id: Optional[UUID] = Field(None, description="UUID of the student answer; null if not answered")
     title: str = Field(..., description="Question title")
     type: str = Field(..., description="Question type: single_choice, multi_choice, text, image_upload")
     student_answer: Optional[dict] = Field(None, description="The student's submitted answer (JSON)")
@@ -34,6 +35,7 @@ class QuestionResultResponse(BaseModel):
     model_config = ConfigDict(json_schema_extra={
         "example": {
             "question_id": "550e8400-e29b-41d4-a716-446655441111",
+            "answer_id": "550e8400-e29b-41d4-a716-446655442222",
             "title": "What is 2+2?",
             "type": "single_choice",
             "student_answer": {"answer": "A"},
@@ -109,6 +111,7 @@ class ExamResultsSummary(BaseModel):
 class StudentResultSummary(BaseModel):
     """Summarized result for a single student in admin exam listing."""
 
+    student_exam_id: UUID = Field(..., description="StudentExam id (needed to view detailed results)")
     student_id: UUID = Field(..., description="Student user id")
     student_name: str = Field(..., description="Student's name")
     student_email: str = Field(..., description="Student's email")
@@ -119,6 +122,7 @@ class StudentResultSummary(BaseModel):
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
+            "student_exam_id": "550e8400-e29b-41d4-a716-446655445555",
             "student_id": "550e8400-e29b-41d4-a716-446655444444",
             "student_name": "John Doe",
             "student_email": "john@example.com",

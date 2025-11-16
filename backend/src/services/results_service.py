@@ -76,6 +76,7 @@ def get_student_result(db: Session, student_exam_id: UUID, student_id: UUID) -> 
 
             q_results.append({
                 "question_id": q.id,
+                "answer_id": sa.id if sa else None,
                 "title": q.title,
                 "type": q.type,
                 "student_answer": student_ans,
@@ -136,6 +137,7 @@ def get_student_exam_detail(db: Session, student_exam_id: UUID) -> Dict[str, Any
 
             q_results.append({
                 "question_id": q.id,
+                "answer_id": sa.id if sa else None,
                 "title": q.title,
                 "type": q.type,
                 "student_answer": student_ans,
@@ -193,6 +195,7 @@ def get_exam_results_for_admin(db: Session, exam_id: UUID) -> Dict[str, Any]:
         for s in se_list:
             pct = _safe_percent(float(s.total_score) if s.total_score is not None else None, float(sum([q.question.max_score for q in s.exam.exam_questions]) or 0.0))
             student_results.append({
+                "student_exam_id": s.id,  # Added missing field
                 "student_id": s.student_id,
                 "student_name": s.student.email.split("@")[0],
                 "student_email": s.student.email,
