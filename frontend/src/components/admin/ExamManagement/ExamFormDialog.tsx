@@ -99,7 +99,12 @@ const ExamFormDialog: React.FC<Props> = ({ open, onClose, exam, onSuccess }) => 
               label="Start Date & Time"
               value={field.value ? dayjs(field.value) : null}
               onChange={(v) => field.onChange(v ? dayjs(v).toISOString() : '')}
-              renderInput={(params) => <TextField {...params} />}
+              slotProps={{
+                textField: {
+                  required: true,
+                  fullWidth: true
+                }
+              }}
             />
           )} />
 
@@ -108,7 +113,12 @@ const ExamFormDialog: React.FC<Props> = ({ open, onClose, exam, onSuccess }) => 
               label="End Date & Time"
               value={field.value ? dayjs(field.value) : null}
               onChange={(v) => field.onChange(v ? dayjs(v).toISOString() : '')}
-              renderInput={(params) => <TextField {...params} />}
+              slotProps={{
+                textField: {
+                  required: true,
+                  fullWidth: true
+                }
+              }}
             />
           )} />
 

@@ -133,7 +133,15 @@ const ExamList: React.FC = () => {
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TablePagination component="div" count={total} page={page - 1} onPageChange={(e, p) => setPage(p + 1)} rowsPerPage={limit} onRowsPerPageChange={(e) => { setLimit(parseInt(e.target.value, 10)); setPage(1)}} rowsPerPageOptions={[5, 10, 20]} />
+                  <TablePagination 
+                    colSpan={6}
+                    count={total} 
+                    page={page - 1} 
+                    onPageChange={(e, p) => setPage(p + 1)} 
+                    rowsPerPage={limit} 
+                    onRowsPerPageChange={(e) => { setLimit(parseInt(e.target.value, 10)); setPage(1)}} 
+                    rowsPerPageOptions={[5, 10, 20]} 
+                  />
                 </TableRow>
               </TableFooter>
             </Table>
