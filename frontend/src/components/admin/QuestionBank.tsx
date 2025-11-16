@@ -1,10 +1,4 @@
 import React from 'react'
-import { Container, Typography } from '@mui/material'
+import QuestionList from './QuestionBank/QuestionList'
 
-const QuestionBank: React.FC = () => (
-  <Container>
-    <Typography variant="h6">Question Bank (coming soon)</Typography>
-  </Container>
-)
-
-export default QuestionBank
+export default QuestionList
