@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/Add'
 import UploadIcon from '@mui/icons-material/Upload'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import { getQuestions, deleteQuestion } from '@/api/questions'
 import ExcelImportDialog from './ExcelImportDialog'
 import type { Question } from '@/types/question.types'
@@ -12,6 +13,7 @@ import QuestionFilters from './QuestionFilters'
 import QuestionFormDialog from './QuestionFormDialog'
 import ConfirmDialog from '@/components/common/ConfirmDialog'
 import { log, error } from '@/utils/logger'
+import QuestionDetail from './QuestionDetail'
 
 const QuestionList: React.FC = () => {
   const [questions, setQuestions] = React.useState<Question[]>([])
@@ -28,6 +30,8 @@ const QuestionList: React.FC = () => {
   const [formOpen, setFormOpen] = React.useState(false)
   const [importOpen, setImportOpen] = React.useState(false)
   const [deleteTarget, setDeleteTarget] = React.useState<Question | null>(null)
+  const [detailId, setDetailId] = React.useState<string | undefined>(undefined)
+  const [detailOpen, setDetailOpen] = React.useState(false)
 
   React.useEffect(() => { void fetchQuestions() }, [page, limit, search, type, complexity, tags])
 
@@ -112,6 +116,7 @@ const QuestionList: React.FC = () => {
                   <TableCell>{q.max_score}</TableCell>
                   <TableCell align="right">
                     <IconButton onClick={() => { setEditQuestion(q); setFormOpen(true) }} aria-label="edit"><EditIcon /></IconButton>
+                    <IconButton onClick={() => { setDetailId(q.id); setDetailOpen(true) }} aria-label="view"><VisibilityIcon /></IconButton>
                     <IconButton onClick={() => setDeleteTarget(q)} aria-label="delete"><DeleteIcon color="error" /></IconButton>
                   </TableCell>
                 </TableRow>
@@ -131,6 +136,14 @@ const QuestionList: React.FC = () => {
       <ExcelImportDialog open={importOpen} onClose={() => setImportOpen(false)} onSuccess={() => void fetchQuestions()} />
 
       <ConfirmDialog open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} title="Delete question" message="Are you sure you want to delete this question? This action cannot be undone." />
+      {/* Question details dialog */}
+      <QuestionDetail
+        open={detailOpen}
+        questionId={detailId}
+        onClose={() => setDetailOpen(false)}
+        onEdit={(q) => { setEditQuestion(q); setDetailOpen(false); setFormOpen(true) }}
+        onDelete={(id) => { setDetailOpen(false); const q = questions.find(x => x.id === id); setDeleteTarget(q ?? null) }}
+      />
     </Container>
   )
 }

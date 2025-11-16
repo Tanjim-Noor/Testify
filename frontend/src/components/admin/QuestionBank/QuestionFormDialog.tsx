@@ -6,6 +6,7 @@ import { createQuestion, updateQuestion } from '@/api/questions'
 import OptionsEditor from './OptionsEditor'
 import { RadioGroup, FormControlLabel, Radio, FormGroup, Checkbox } from '@mui/material'
 import { log, error } from '@/utils/logger'
+import { mapAnswersToOptionStrings } from '@/utils/optionUtils'
 
 interface Props {
   open: boolean
@@ -21,7 +22,19 @@ const QuestionFormDialog: React.FC<Props> = ({ open, onClose, question, onSucces
   })
 
   React.useEffect(() => {
-    if (open) reset(question ? { ...question } as any : undefined)
+    if (open) {
+      if (question) {
+        // Normalize correct answers: if backend stores letters ("A"), map them to the
+        // actual option strings so the UI can display the selected radio/checkbox.
+        const initial = { ...question } as any
+        if (initial.options && initial.correct_answers) {
+          initial.correct_answers = mapAnswersToOptionStrings(initial.options, initial.correct_answers)
+        }
+        reset(initial)
+      } else {
+        reset(undefined)
+      }
+    }
   }, [open, question])
 
   const onSubmit = async (data: QuestionFormData) => {
