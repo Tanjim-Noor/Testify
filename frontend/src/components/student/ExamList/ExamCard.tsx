@@ -35,7 +35,18 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, onStartExam }) => {
     // Check submission status first
     if (submission_status === 'submitted') {
       return (
-        <Button variant="outlined" disabled color="success">
+        <Button 
+          variant="contained" 
+          disabled 
+          sx={{
+            bgcolor: 'success.light',
+            color: 'success.dark',
+            '&.Mui-disabled': {
+              bgcolor: 'success.light',
+              color: 'success.dark',
+            },
+          }}
+        >
           Submitted
         </Button>
       )
