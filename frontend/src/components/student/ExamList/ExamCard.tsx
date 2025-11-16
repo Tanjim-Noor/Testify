@@ -23,15 +23,24 @@ interface ExamCardProps {
  * Shows exam details, status, and action buttons
  */
 const ExamCard: React.FC<ExamCardProps> = ({ exam, onStartExam }) => {
-  const { exam_id, title, description, start_time, end_time, duration_minutes, status } = exam
+  const { exam_id, title, description, start_time, end_time, duration_minutes, status, submission_status } = exam
 
   const handleAction = () => {
-    if (status === 'available') {
+    if (status === 'available' && submission_status !== 'submitted') {
       onStartExam(exam_id)
     }
   }
 
   const getActionButton = () => {
+    // Check submission status first
+    if (submission_status === 'submitted') {
+      return (
+        <Button variant="outlined" disabled color="success">
+          Submitted
+        </Button>
+      )
+    }
+
     switch (status) {
       case 'available':
         return (

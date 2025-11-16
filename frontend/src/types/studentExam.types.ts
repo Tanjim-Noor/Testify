@@ -20,6 +20,8 @@ export interface AvailableExam {
   end_time: string // ISO 8601
   duration_minutes: number
   status: ExamStatus
+  student_exam_id?: string // If exam has been started, this will be set
+  submission_status?: 'not_started' | 'in_progress' | 'submitted'
 }
 
 /**
@@ -53,4 +55,53 @@ export interface AnswerValue {
  */
 export interface AvailableExamWithSession extends AvailableExam {
   session?: StudentExamSession
+}
+
+/**
+ * Question in exam session (without correct answers)
+ * Used during exam taking
+ */
+export interface ExamQuestion {
+  id: string
+  title: string
+  description?: string
+  type: 'single_choice' | 'multi_choice' | 'text' | 'image_upload'
+  complexity: string
+  options?: string[]
+  max_score: number
+  order_index: number
+}
+
+/**
+ * Student's answer for a question
+ * Stored in exam session
+ */
+export interface StudentAnswer {
+  question_id: string
+  answer_value: AnswerValue
+  answered_at?: string // ISO 8601
+}
+
+/**
+ * Exam details for taking
+ * Returned from GET /api/student/exams/{student_exam_id}
+ */
+export interface ExamDetail {
+  id: string
+  title: string
+  description?: string
+  duration_minutes: number
+  start_time: string
+  end_time: string
+}
+
+/**
+ * Complete exam session data
+ * Used during exam taking
+ */
+export interface ExamSession {
+  student_exam: StudentExamSession
+  exam_details: ExamDetail
+  questions: ExamQuestion[]
+  answers: Record<string, AnswerValue> // Backend returns object/dictionary, not array
 }

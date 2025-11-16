@@ -62,8 +62,15 @@ const ExamListPage: React.FC = () => {
       notify(response.message || 'Exam started successfully', 'success')
       // Navigate to exam taking page
       navigate(`/student/exams/${response.student_exam_id}/take`)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to start exam'
+    } catch (err: unknown) {
+      // Extract error message from backend response
+      let message = 'Failed to start exam'
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { data?: { detail?: string } }; message?: string }
+        message = axiosErr.response?.data?.detail || axiosErr.message || message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
       logError('ExamListPage', 'Failed to start exam', err)
       notify(message, 'error')
     }
