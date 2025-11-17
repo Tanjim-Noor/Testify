@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Card,
   CardContent,
@@ -8,11 +8,14 @@ import {
   Typography,
   Alert,
   CircularProgress,
+  CardMedia,
 } from '@mui/material'
-import { Save as SaveIcon } from '@mui/icons-material'
+import { Save as SaveIcon, Visibility } from '@mui/icons-material'
 import { gradeAnswer } from '@/api/results'
 import { log, error as logError } from '@/utils/logger'
 import type { QuestionResult } from '@/types/result.types'
+import { getAuthenticatedImageUrl } from '@/api/uploads'
+import ImageViewerDialog from '@/components/common/ImageViewerDialog'
 
 interface ManualGradeFormProps {
   questionResult: QuestionResult
@@ -34,8 +37,32 @@ export default function ManualGradeForm({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [imageViewerOpen, setImageViewerOpen] = useState(false)
+  const [imageBlobUrl, setImageBlobUrl] = useState<string>('')
 
   const isAlreadyGraded = questionResult.score !== null
+
+  // Load image with authentication
+  useEffect(() => {
+    const loadImage = async () => {
+      if (questionResult.student_answer?.file_url) {
+        try {
+          const blobUrl = await getAuthenticatedImageUrl(questionResult.student_answer.file_url)
+          setImageBlobUrl(blobUrl)
+        } catch (err) {
+          logError('ManualGradeForm', 'Failed to load image', err)
+        }
+      }
+    }
+    loadImage()
+
+    // Cleanup blob URL on unmount
+    return () => {
+      if (imageBlobUrl) {
+        window.URL.revokeObjectURL(imageBlobUrl)
+      }
+    }
+  }, [questionResult.student_answer?.file_url])
 
   // Handle submit
   const handleSubmit = async () => {
@@ -103,21 +130,30 @@ export default function ManualGradeForm({
           )}
           {questionResult.type === 'image_upload' && questionResult.student_answer?.file_url && (
             <Box>
-              <Typography variant="body2" gutterBottom>
-                Image submitted
-              </Typography>
-              <Box
-                component="img"
-                src={questionResult.student_answer.file_url}
-                alt="Student's answer"
-                sx={{
-                  maxWidth: '100%',
-                  maxHeight: 300,
-                  borderRadius: 1,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
-              />
+              {imageBlobUrl ? (
+                <>
+                  <Card sx={{ maxWidth: 500 }}>
+                    <CardMedia
+                      component="img"
+                      height="250"
+                      image={imageBlobUrl}
+                      alt="Student answer"
+                      sx={{ objectFit: 'contain', backgroundColor: 'grey.100', cursor: 'pointer' }}
+                      onClick={() => setImageViewerOpen(true)}
+                    />
+                  </Card>
+                  <Button
+                    size="small"
+                    startIcon={<Visibility />}
+                    onClick={() => setImageViewerOpen(true)}
+                    sx={{ mt: 1 }}
+                  >
+                    View Full Size
+                  </Button>
+                </>
+              ) : (
+                <CircularProgress size={24} />
+              )}
             </Box>
           )}
           {!questionResult.student_answer && (
@@ -176,6 +212,17 @@ export default function ManualGradeForm({
           </Button>
         </Box>
       </CardContent>
+
+      {/* Image Viewer Dialog */}
+      {questionResult.student_answer?.file_url && (
+        <ImageViewerDialog
+          open={imageViewerOpen}
+          onClose={() => setImageViewerOpen(false)}
+          imageUrl={questionResult.student_answer.file_url}
+          filename="Student Answer"
+          title="Student Answer - Image Upload"
+        />
+      )}
     </Card>
   )
 }

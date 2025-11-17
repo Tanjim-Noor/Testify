@@ -9,13 +9,19 @@ interface AnswerRendererProps {
   question: StudentExamQuestion
   currentAnswer: AnswerValue
   onAnswerChange: (value: AnswerValue) => void
+  studentExamId?: string
 }
 
 /**
  * Answer renderer component
  * Renders the appropriate answer component based on question type
  */
-const AnswerRenderer: React.FC<AnswerRendererProps> = ({ question, currentAnswer, onAnswerChange }) => {
+const AnswerRenderer: React.FC<AnswerRendererProps> = ({ 
+  question, 
+  currentAnswer, 
+  onAnswerChange,
+  studentExamId 
+}) => {
   switch (question.type) {
     case 'single_choice':
       return (
@@ -39,7 +45,14 @@ const AnswerRenderer: React.FC<AnswerRendererProps> = ({ question, currentAnswer
       return <TextAnswer value={currentAnswer} onChange={onAnswerChange} />
 
     case 'image_upload':
-      return <ImageUploadAnswer value={currentAnswer} onChange={onAnswerChange} />
+      return (
+        <ImageUploadAnswer
+          value={currentAnswer}
+          onChange={onAnswerChange}
+          studentExamId={studentExamId}
+          questionId={question.id}
+        />
+      )
 
     default:
       return null

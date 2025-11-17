@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Accordion,
   AccordionSummary,
@@ -9,6 +9,9 @@ import {
   useTheme,
   Divider,
   Stack,
+  Button,
+  Card,
+  CardMedia,
 } from '@mui/material'
 import {
   ExpandMore,
@@ -19,8 +22,11 @@ import {
   CheckBox,
   TextFields,
   Image,
+  Visibility,
 } from '@mui/icons-material'
 import type { QuestionResult } from '@/types/result.types'
+import { getImageUrl } from '@/api/uploads'
+import ImageViewerDialog from '@/components/common/ImageViewerDialog'
 
 interface QuestionResultCardProps {
   question: QuestionResult
@@ -36,6 +42,9 @@ const QuestionResultCard: React.FC<QuestionResultCardProps> = ({
   questionNumber,
 }) => {
   const theme = useTheme()
+  const [imageViewerOpen, setImageViewerOpen] = useState(false)
+  const [viewingImageUrl, setViewingImageUrl] = useState('')
+  const [viewingImageName, setViewingImageName] = useState('')
 
   // Determine status and color
   const isPending = question.requires_manual_review
@@ -84,7 +93,48 @@ const QuestionResultCard: React.FC<QuestionResultCardProps> = ({
       return answer.text
     }
     if (answer.file_url) {
-      return <a href={answer.file_url} target="_blank" rel="noopener noreferrer">View Image</a>
+      // Parse metadata if available
+      let metadata: any = null
+      try {
+        if (answer.text) {
+          metadata = JSON.parse(answer.text)
+        }
+      } catch {
+        // Ignore parse errors
+      }
+
+      const filename = metadata?.filename || 'image.jpg'
+      
+      return (
+        <Box>
+          <Card sx={{ maxWidth: 400 }}>
+            <CardMedia
+              component="img"
+              height="200"
+              image={getImageUrl(answer.file_url)}
+              alt={filename}
+              sx={{ objectFit: 'contain', backgroundColor: 'grey.100', cursor: 'pointer' }}
+              onClick={() => {
+                setViewingImageUrl(answer.file_url!)
+                setViewingImageName(filename)
+                setImageViewerOpen(true)
+              }}
+            />
+          </Card>
+          <Button
+            size="small"
+            startIcon={<Visibility />}
+            onClick={() => {
+              setViewingImageUrl(answer.file_url!)
+              setViewingImageName(filename)
+              setImageViewerOpen(true)
+            }}
+            sx={{ mt: 1 }}
+          >
+            View Full Size
+          </Button>
+        </Box>
+      )
     }
 
     return 'No answer provided'
@@ -302,6 +352,15 @@ const QuestionResultCard: React.FC<QuestionResultCardProps> = ({
           </Box>
         </Stack>
       </AccordionDetails>
+
+      {/* Image Viewer Dialog */}
+      <ImageViewerDialog
+        open={imageViewerOpen}
+        onClose={() => setImageViewerOpen(false)}
+        imageUrl={viewingImageUrl}
+        filename={viewingImageName}
+        title="Student Answer"
+      />
     </Accordion>
   )
 }

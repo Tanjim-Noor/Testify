@@ -21,6 +21,7 @@ from src.routes import exam as admin_routes
 from src.routes import student as student_routes
 from src.routes import results as student_results_routes
 from src.routes import admin_results as admin_results_routes
+from src.routes import upload as upload_routes
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -74,6 +75,7 @@ app.include_router(admin_routes.admin_router)
 app.include_router(student_routes.router)
 app.include_router(student_results_routes.router)
 app.include_router(admin_results_routes.router)
+app.include_router(upload_routes.router)
 
 
 @app.get("/health", tags=["Health"])

@@ -48,6 +48,17 @@ class Settings(BaseSettings):
     # Application Configuration
     APP_TITLE: str = "Online Exam Management System"
     APP_VERSION: str = "0.1.0"
+    
+    # File Upload Configuration
+    UPLOAD_DIR: str = "uploads"
+    MAX_UPLOAD_SIZE: int = 5 * 1024 * 1024  # 5MB in bytes
+    ALLOWED_IMAGE_TYPES: List[str] = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp"
+    ]
     DEBUG: bool = False
     # Project base directory available from settings for convenience in other modules
     BASE_DIR: Path = BASE_DIR

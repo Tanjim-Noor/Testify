@@ -51,5 +51,6 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
-# Uploaded files (should not be committed)
-uploads/
+# Uploaded files (keep directory structure, ignore files)
+uploads/**/*
+!uploads/**/.gitkeep
