@@ -39,38 +39,38 @@ async function generate() {
   // Example rows
   // Single choice example
   sheet.addRow([
-    'Which formula represents the Pythagorean theorem?',
-    'Select the correct expression',
-    'Class 10',
+    'Which HTTP status code means "Not Found"?',
+    'Select the correct numeric status code',
+    'Web Dev',
     'single_choice',
-    '["a^2 + b^2 = c^2","a^2 = b^2 + c^2","a + b = c"]',
-    '["a^2 + b^2 = c^2"]',
+    '["200","301","404"]',
+    '["404"]',
     1,
-    'geometry,power',
+    'http,status',
   ])
 
   // Provide a second sample as a multi-choice question to avoid missing 'correct_answers' issues
   // Text question example (open-ended)
   sheet.addRow([
-    'Explain the Pythagorean theorem',
-    'Open-ended explanation',
-    'Class 10',
+    'Explain the difference between React useState and useEffect',
+    'Provide a short comparison of the two hooks',
+    'Frontend',
     'text',
     '',
     '',
     5,
-    'geometry',
+    'react,hooks',
   ])
   // Example: multi_choice with more than one correct option
   sheet.addRow([
-    'Select all prime numbers',
-    'Choose numbers that are prime',
-    'Class 8',
+    'Which of the following are fruits?',
+    'Select all that are fruits',
+    'General Knowledge',
     'multi_choice',
-    '["2","3","4","5"]',
-    '["2","3","5"]',
+    '["Apple","Carrot","Banana","Potato"]',
+    '["Apple","Banana"]',
     2,
-    'math,number',
+    'food,fruit',
   ])
 
   const publicPath = path.resolve(__dirname, '..', 'frontend', 'public')
