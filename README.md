@@ -302,7 +302,12 @@ notepad .env
 npm run generate:template
 ```
 
-This creates a question import template at `public/questions_template.xlsx`.
+This creates a question import template at `public/questions_template.xlsx` with three sample questions:
+- **Single Choice:** HTTP status code question (Web Dev)
+- **Text (Open-ended):** React hooks comparison question (Frontend)
+- **Multi-Choice:** Identifying fruits question (General Knowledge)
+
+The template demonstrates the correct Excel format for importing questions into the system. You can modify these examples or use them as a reference when creating your own question bank.
 
 ## 🚀 Running the Application
 
