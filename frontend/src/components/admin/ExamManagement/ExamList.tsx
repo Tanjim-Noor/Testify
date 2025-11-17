@@ -1,5 +1,5 @@
 import React from 'react'
-import { Container, Typography, Button, Paper, Box, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Chip, Stack, TableFooter, TablePagination, CircularProgress, Switch, Tooltip, Badge } from '@mui/material'
+import { Container, Typography, Button, Paper, Box, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Chip, TableFooter, TablePagination, CircularProgress, Switch, Tooltip, Badge } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -139,7 +139,7 @@ const ExamList: React.FC = () => {
                     colSpan={6}
                     count={total} 
                     page={page - 1} 
-                    onPageChange={(e, p) => setPage(p + 1)} 
+                    onPageChange={(_, p) => setPage(p + 1)} 
                     rowsPerPage={limit} 
                     onRowsPerPageChange={(e) => { setLimit(parseInt(e.target.value, 10)); setPage(1)}} 
                     rowsPerPageOptions={[5, 10, 20]} 

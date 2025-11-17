@@ -1,5 +1,5 @@
 import React from 'react'
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, MenuItem, CircularProgress } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, MenuItem, CircularProgress, Autocomplete, Chip } from '@mui/material'
 import { useForm, Controller } from 'react-hook-form'
 import type { Question, QuestionFormData, QuestionType } from '@/types/question.types'
 import { createQuestion, updateQuestion } from '@/api/questions'
@@ -17,8 +17,9 @@ interface Props {
 
 const QuestionFormDialog: React.FC<Props> = ({ open, onClose, question, onSuccess }) => {
   const isEdit = Boolean(question)
-  const { control, handleSubmit, watch, formState, reset, setValue } = useForm<QuestionFormData>({
-    defaultValues: question ? { ...question } as any : { title: '', description: '', complexity: '', type: 'single_choice', options: [], correct_answers: [], max_score: 1, tags: [] },
+  const defaultValues: QuestionFormData = { title: '', description: '', complexity: '', type: 'single_choice', options: [], correct_answers: [], max_score: 1, tags: [] }
+  const { control, handleSubmit, watch, formState, reset } = useForm<QuestionFormData>({
+    defaultValues,
   })
 
   React.useEffect(() => {
@@ -32,10 +33,10 @@ const QuestionFormDialog: React.FC<Props> = ({ open, onClose, question, onSucces
         }
         reset(initial)
       } else {
-        reset(undefined)
+        reset(defaultValues)
       }
     }
-  }, [open, question])
+  }, [open, question, reset])
 
   const onSubmit = async (data: QuestionFormData) => {
     try {
@@ -115,6 +116,25 @@ const QuestionFormDialog: React.FC<Props> = ({ open, onClose, question, onSucces
                       )}
                     </>
                   )}
+
+          <Controller name="tags" control={control as any} render={({ field }) => (
+            <Autocomplete
+              multiple
+              freeSolo
+              options={[]}
+              value={field.value ?? []}
+              onChange={(_, newValue) => field.onChange(newValue)}
+              renderInput={(params) => (
+                <TextField {...params} label="Tags" placeholder="Add tags (press Enter)" helperText="Type and press Enter to add tags" />
+              )}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => {
+                  const { key, ...tagProps } = getTagProps({ index })
+                  return <Chip key={key} label={option} size="small" {...tagProps} />
+                })
+              }
+            />
+          )} />
 
           <Controller name="max_score" control={control as any} rules={{ required: true, min: 1 }} render={({ field }) => (
             <TextField label="Max Score" type="number" inputProps={{ min: 1 }} {...field} />

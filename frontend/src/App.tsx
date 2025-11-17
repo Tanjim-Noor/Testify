@@ -2,13 +2,15 @@ import { ThemeProvider } from '@mui/material/styles'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { CssBaseline } from '@mui/material'
-import { ErrorBoundary } from '@/components/common'
+import { ErrorBoundary, GlobalLoader, OfflineIndicator } from '@/components/common'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Login from '@/components/auth/Login'
 import Register from '@/components/auth/Register'
 import RoleBasedRedirect from '@/components/common/RoleBasedRedirect'
 import { AdminLayout, StudentLayout } from '@/components/common/Layout'
 import NotFound from '@/components/common/NotFound'
+import ServerError from '@/components/common/ServerError'
+import AccessDenied from '@/components/common/AccessDenied'
 import AdminDashboard from '@/components/admin/AdminDashboard'
 import StudentDashboard from '@/components/student/StudentDashboard'
 import QuestionBank from '@/components/admin/QuestionBank'
@@ -47,6 +49,8 @@ const App = () => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ErrorBoundary>
           <NotificationProvider>
+            <OfflineIndicator />
+            <GlobalLoader />
             <BrowserRouter>
               <AuthInit />
               <Routes>
@@ -73,6 +77,9 @@ const App = () => {
                 </Route>
                 {/* Exam taking page - standalone (outside layout for custom header) */}
                 <Route path="/student/exams/:studentExamId/take" element={<ProtectedRoute requiredRole="student"><ExamTakingPage /></ProtectedRoute>} />
+                {/* Error pages */}
+                <Route path="/500" element={<ServerError />} />
+                <Route path="/403" element={<AccessDenied />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <RouteLoader />

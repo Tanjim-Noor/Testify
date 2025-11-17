@@ -45,7 +45,7 @@ const ExcelImportDialog: React.FC<Props> = ({ open, onClose, onSuccess }) => {
             setProgress(0)
             const res = await importQuestions(file, (e) => {
               if (!e.lengthComputable) return
-              const pct = Math.round((e.loaded / e.total) * 100)
+              const pct = e.total ? Math.round((e.loaded / e.total) * 100) : 0
               setProgress(pct)
             })
             log('ExcelImportDialog', 'Import result', res)

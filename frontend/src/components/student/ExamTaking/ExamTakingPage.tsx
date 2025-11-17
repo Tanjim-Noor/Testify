@@ -303,6 +303,7 @@ const ExamTakingPage: React.FC = () => {
                       question={currentQuestion}
                       currentAnswer={currentAnswer}
                       onAnswerChange={(value) => handleAnswerChange(currentQuestion.id, value)}
+                      studentExamId={studentExamId}
                     />
                   </Box>
 
